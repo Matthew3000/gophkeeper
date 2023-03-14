@@ -135,12 +135,21 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 	binary.UpdatedAt = time.Now()
 	var checkEntry service.LogoPass
 
+	tx := dbStorage.db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	newEntry := false
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?  AND description = ?",
 		binary.Login, binary.Description).First(&checkEntry).Error
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
+		newEntry = true
 	}
 	if !binary.Overwrite {
 		if checkEntry.Login != "" {
@@ -151,12 +160,98 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 	if checkEntry.UpdatedAt.After(binary.UpdatedAt) {
 		return ErrOldData
 	}
-	err = dbStorage.db.WithContext(ctx).Save(&binary).Error
+	err = tx.WithContext(ctx).Save(&binary).Error
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
+	//add new description to user's list of binaries
+	if newEntry {
+		binaryList, err := dbStorage.GetBinaryList(binary.Login, ctx)
+		if err != nil {
+			if !errors.Is(err, ErrEmpty) {
+				tx.Rollback()
+				return err
+			}
+		}
+		binaryList.BinaryList = append(binaryList.BinaryList, binary.Description)
+		err = tx.WithContext(ctx).Save(&binaryList).Error
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (dbStorage DBStorage) BatchGetLogoPasses(login string, ctx context.Context) ([]service.LogoPass, error) {
+	var listLogoPasses []service.LogoPass
+
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).Find(&listLogoPasses).Error
+	if len(listLogoPasses) == 0 {
+		return nil, ErrEmpty
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return listLogoPasses, nil
+}
+
+func (dbStorage DBStorage) BatchGetTexts(login string, ctx context.Context) ([]service.TextData, error) {
+	var listTexts []service.TextData
+
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).Find(&listTexts).Error
+	if len(listTexts) == 0 {
+		return nil, ErrEmpty
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return listTexts, nil
+}
+
+func (dbStorage DBStorage) BatchGetCreditCards(login string, ctx context.Context) ([]service.CreditCard, error) {
+	var listCards []service.CreditCard
+
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).Find(&listCards).Error
+	if len(listCards) == 0 {
+		return nil, ErrEmpty
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return listCards, nil
+}
+
+func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) (service.UserBinaryList, error) {
+	var binaryList service.UserBinaryList
+
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).First(&binaryList).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return binaryList, ErrEmpty
+		}
+		return binaryList, err
+	}
+	return binaryList, nil
+}
+
+func (dbStorage DBStorage) GetBinary(login string, ctx context.Context) (service.BinaryData, error) {
+	var binary service.BinaryData
+
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).First(&binary).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return binary, ErrEmpty
+		}
+		return binary, err
+	}
+	return binary, nil
 }
 
 func (dbStorage DBStorage) DeleteAll() {

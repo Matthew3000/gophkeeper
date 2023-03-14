@@ -148,7 +148,7 @@ func (app *App) BatchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) 
 	render.JSON(w, r, listLogoPasses)
 }
 
-func (app *App) UploadSecret(w http.ResponseWriter, r *http.Request) {
+func (app *App) UploadText(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -174,7 +174,7 @@ func (app *App) UploadSecret(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (app *App) BatchDownloadSecrets(w http.ResponseWriter, r *http.Request) {
+func (app *App) BatchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")

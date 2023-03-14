@@ -17,6 +17,7 @@
       <change beforePath="$PROJECT_DIR$/internal/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/config/config.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/service/service.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/service/service_types.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/service_types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/storage/access_db.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/storage/access_db.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/storage/storage.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/storage/storage.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

@@ -23,9 +23,17 @@ func NewApp(cfg config.Config, userStorage storage.UserStorage, cookieStorage se
 func (app *App) Run() {
 	router := mux.NewRouter()
 	router.Use(tools.GzipMiddleware, app.AddContext)
-	router.HandleFunc("/api/user/register", app.handleRegister).Methods(http.MethodPost)
-	router.HandleFunc("/api/user/login", app.handleLogin).Methods(http.MethodPost)
-	router.HandleFunc("/api/user/orders", app.IsAuthorized(app.handleUploadLogoPass)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/register", app.Register).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/login", app.Login).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/upload/logopass", app.IsAuthorized(app.UploadLogoPass)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/upload/text", app.IsAuthorized(app.UploadText)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/upload/creditcard", app.IsAuthorized(app.UploadCreditCard)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/upload/binary", app.IsAuthorized(app.UploadBinary)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadLogoPasses)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadTexts)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadCreditCards)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.DownloadBinaryList)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.DownloadBinary)).Methods(http.MethodPost)
 
 	router.HandleFunc("/", app.handleDefault)
 
