@@ -118,10 +118,15 @@ func (app *App) UploadLogoPass(w http.ResponseWriter, r *http.Request) {
 
 	err = app.userStorage.PutLogoPass(logoPass, r.Context())
 	if err != nil {
+		if errors.Is(err, storage.ErrOldData) {
+			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+			return
+		}
 		log.Printf("put logopass pair: save to db: %s for user: %s", err, logoPass.Login)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (app *App) BatchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) {
@@ -158,10 +163,15 @@ func (app *App) UploadSecret(w http.ResponseWriter, r *http.Request) {
 
 	err = app.userStorage.PutText(text, r.Context())
 	if err != nil {
+		if errors.Is(err, storage.ErrOldData) {
+			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+			return
+		}
 		log.Printf("put secret text: save to db: %s for user: %s", err, text.Login)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (app *App) BatchDownloadSecrets(w http.ResponseWriter, r *http.Request) {
@@ -198,10 +208,15 @@ func (app *App) UploadCreditCard(w http.ResponseWriter, r *http.Request) {
 
 	err = app.userStorage.PutCreditCard(card, r.Context())
 	if err != nil {
+		if errors.Is(err, storage.ErrOldData) {
+			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+			return
+		}
 		log.Printf("put credit card: save to db: %s for user: %s", err, card.Login)
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (app *App) BatchDownloadCreditCards(w http.ResponseWriter, r *http.Request) {
@@ -239,9 +254,14 @@ func (app *App) UploadBinary(w http.ResponseWriter, r *http.Request) {
 	err = app.userStorage.PutBinary(binary, r.Context())
 	if err != nil {
 		log.Printf("put credit card: save to db: %s for user: %s", err, binary.Login)
+		if errors.Is(err, storage.ErrOldData) {
+			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+			return
+		}
+		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
 	}
-	http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
@@ -265,7 +285,7 @@ func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) DownloadBinary(w http.ResponseWriter, r *http.Request) {
-	var binary service.CreditCard
+	var binary service.BinaryData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
 	binary.Login = session.Values["login"].(string)

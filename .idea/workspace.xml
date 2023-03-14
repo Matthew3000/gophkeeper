@@ -5,19 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b4dff315-363f-4b32-8ebd-d5bf3ef80197" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/internal/app/handlers.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/internal/service/auth_methods.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/internal/service/auth_types.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/service/service_types.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/storage/access_db.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/internal/storage/initialize_db.go" afterDir="false" />
       <change afterPath="$PROJECT_DIR$/internal/tools/gzip.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/keeper/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/keeper/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/app/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/app/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/handlers.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/config/config.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/service/service.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/service/service_types.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/service/service_types.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/storage/storage.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/storage/storage.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
