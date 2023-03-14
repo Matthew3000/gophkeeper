@@ -174,6 +174,7 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 				tx.Rollback()
 				return err
 			}
+			binaryList.Login = binary.Login
 		}
 		binaryList.BinaryList = append(binaryList.BinaryList, binary.Description)
 		err = tx.WithContext(ctx).Save(&binaryList).Error
