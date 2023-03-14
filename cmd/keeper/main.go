@@ -13,30 +13,20 @@ import (
 )
 
 var (
-	buildVersion string
-	buildDate    string
-	buildCommit  string
+	// To get desired build credentials use commands:
+	// For win powershell:
+	// go run -ldflags "-X main.buildVersion=v1.0.1 -X main.buildCommit=07fa3a5 -X 'main.buildDate=$(Get-Date -uformat %Y/%m/%d-%H:%M)'" main.go
+	// For unix:
+	// go run -ldflags "-X main.buildVersion=v1.0.1 -X main.buildCommit=07fa3a5 -X 'main.buildDate=$(date +'%Y/%m/%d-%H:%M')'" main.go
+	buildVersion = "N/A"
+	buildDate    = "N/A"
+	buildCommit  = "N/A"
 )
 
 func printBuildData() {
-	switch buildVersion {
-	case "":
-		fmt.Printf("Build version: %s\n", "N/A")
-	default:
-		fmt.Printf("Build version: %s\n", buildVersion)
-	}
-	switch buildDate {
-	case "":
-		fmt.Printf("Build date: %s\n", "N/A")
-	default:
-		fmt.Printf("Build date: %s\n", buildDate)
-	}
-	switch buildCommit {
-	case "":
-		fmt.Printf("Build commit: %s\n", "N/A")
-	default:
-		fmt.Printf("Build commit: %s\n", buildCommit)
-	}
+	fmt.Println("Build version:", buildVersion)
+	fmt.Println("Build date:", buildDate)
+	fmt.Println("Build commit:", buildCommit)
 }
 
 func main() {
