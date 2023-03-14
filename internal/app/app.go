@@ -27,13 +27,13 @@ func (app *App) Run() {
 	router.HandleFunc("/api/user/login", app.Login).Methods(http.MethodPost)
 	router.HandleFunc("/api/user/upload/logopass", app.IsAuthorized(app.UploadLogoPass)).Methods(http.MethodPost)
 	router.HandleFunc("/api/user/upload/text", app.IsAuthorized(app.UploadText)).Methods(http.MethodPost)
-	router.HandleFunc("/api/user/upload/creditcard", app.IsAuthorized(app.UploadCreditCard)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/upload/credit-card", app.IsAuthorized(app.UploadCreditCard)).Methods(http.MethodPost)
 	router.HandleFunc("/api/user/upload/binary", app.IsAuthorized(app.UploadBinary)).Methods(http.MethodPost)
 	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadLogoPasses)).Methods(http.MethodGet)
-	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadTexts)).Methods(http.MethodGet)
-	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.BatchDownloadCreditCards)).Methods(http.MethodGet)
-	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.DownloadBinaryList)).Methods(http.MethodGet)
-	router.HandleFunc("/api/user/download/logopasses", app.IsAuthorized(app.DownloadBinary)).Methods(http.MethodPost)
+	router.HandleFunc("/api/user/download/texts", app.IsAuthorized(app.BatchDownloadTexts)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/credit-cards", app.IsAuthorized(app.BatchDownloadCreditCards)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/binary-list", app.IsAuthorized(app.DownloadBinaryList)).Methods(http.MethodGet)
+	router.HandleFunc("/api/user/download/binary", app.IsAuthorized(app.DownloadBinary)).Methods(http.MethodPost)
 
 	router.HandleFunc("/", app.handleDefault)
 
