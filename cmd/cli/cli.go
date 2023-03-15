@@ -45,7 +45,7 @@ func main() {
 	}
 	var service = client.NewService(cfg, api, storage)
 
-	err = service.Communicate()
+	err = service.StartCommunicate()
 	if err != nil {
 		log.Fatal(err)
 	}

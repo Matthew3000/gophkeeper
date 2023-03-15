@@ -10,6 +10,8 @@ import (
 )
 
 type Service interface {
+	StartCommunicate() error
+	Auth(login, password string) error
 	Register(login, password string) error
 	UpdateAll() error
 	ShowLogoPasses() error
@@ -33,6 +35,85 @@ func NewService(config Config, api Api, storage Storage) *LocalService {
 	return &LocalService{config: config, api: api, storage: storage}
 }
 
+func (svc *LocalService) StartCommunicate() error {
+	reader := bufio.NewReader(os.Stdin)
+
+auth:
+	fmt.Println("Login: type 1\nRegister: type 2")
+	choice, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+
+	fmt.Println("Enter your login")
+	login, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+
+	fmt.Println("Enter your password")
+	password, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+
+	switch choice {
+	case "1":
+		err = svc.Auth(login, password)
+	case "2":
+		err = svc.Register(login, password)
+	default:
+		fmt.Println("Houston we gor problem ")
+		goto auth
+	}
+	if err != nil {
+		fmt.Println(err)
+		goto auth
+	}
+
+initialActionChoice:
+	fmt.Print("What are we going to do today?\n" +
+		"View all stored login password pairs: type 1\n" +
+		"Create a new login password pair:     type 2\n" +
+		"View all texts:                       type 3\n" +
+		"Create a new text secret:             type 4\n" +
+		"View all credit cards' info:          type 5\n" +
+		"Create a new credit card entry:       type 6\n" +
+		"Review all binary data:               type 7\n" +
+		"Upload a new binary:                  type 8\n")
+	choice, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+	switch choice {
+	case "1":
+		err = svc.ShowLogoPasses()
+	case "2":
+		var updLogoPass service.LogoPass
+		updLogoPass.Overwrite = false
+		err = svc.UploadLogoPass(updLogoPass)
+	case "3":
+		err = svc.ShowTexts()
+	case "4":
+		err = svc.UploadText()
+	case "5":
+		err = svc.ShowCreditCards()
+	case "6":
+		err = svc.UploadCreditCard()
+	case "7":
+		err = svc.ShowBinaryList()
+	case "8":
+		err = svc.UploadBinary()
+	default:
+		fmt.Println("Houston we got a problem ")
+		goto initialActionChoice
+	}
+	if err != nil {
+		fmt.Print(err)
+	}
+	goto initialActionChoice
+}
+
 func (svc *LocalService) Auth(login, password string) error {
 	var user service.User
 	user.Login = login
@@ -43,7 +124,7 @@ func (svc *LocalService) Auth(login, password string) error {
 	}
 	svc.key = password
 	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
-	fmt.Print("Authorization successful, updating, please wait")
+	fmt.Println("Authorization successful, updating, please wait")
 
 	//TODO offline
 
@@ -51,7 +132,7 @@ func (svc *LocalService) Auth(login, password string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Print("Update successful")
+	fmt.Println("Update successful")
 	return nil
 }
 
@@ -65,7 +146,7 @@ func (svc *LocalService) Register(login, password string) error {
 	}
 	svc.key = password
 	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
-	fmt.Print("Registration successful, please proceed")
+	fmt.Println("Registration successful, please proceed")
 	return nil
 }
 
@@ -111,16 +192,71 @@ func (svc *LocalService) ShowLogoPasses() error {
 	}
 
 	table.Render()
+
+update:
 	fmt.Print("If you want to update any pair enter it's ID\n" +
-		"otherwise type exit")
+		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
 	choice, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
 	switch choice {
-	case "1":
+	case "exit":
+		return nil
+	default:
+		var updLogoPass service.LogoPass
+		updLogoPass.Overwrite = true
+		id, err := strconv.ParseUint(choice, 10, 32)
+		if err != nil {
+			fmt.Println("I feel you bro, but i just dont get it, please try again")
+			goto update
+		}
+		updLogoPass.ID = uint(id)
+		updLogoPass.Description = ""
+		for _, logoPass := range listLogoPasses {
+			if updLogoPass.ID == logoPass.ID {
+				updLogoPass.Description = logoPass.Description
+			}
+		}
+		if updLogoPass.Description == "" {
+			fmt.Println("There is no such ID, try again")
+			goto update
+		}
+		err = svc.UploadLogoPass(updLogoPass)
+		if err != nil {
+			fmt.Println(err)
+			goto update
+		}
+	}
+	return nil
+}
 
+func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Please, enter login")
+	var err error
+	logoPass.SecretLogin, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+	fmt.Println("Please, enter login")
+	logoPass.SecretPass, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+	if logoPass.Description == "" {
+		fmt.Println("Please, enter description for the pair")
+		logoPass.Description, err = reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input: ", err)
+		}
+	}
+
+	err = svc.api.PutLogoPass(logoPass)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -179,9 +315,7 @@ func (svc *LocalService) ShowBinaryList() error {
 	table.Render()
 	return nil
 }
-func (svc *LocalService) UploadLogoPass() error {
-	return nil
-}
+
 func (svc *LocalService) UploadText() error {
 	return nil
 }

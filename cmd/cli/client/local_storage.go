@@ -2,7 +2,6 @@ package client
 
 import (
 	"encoding/json"
-	"errors"
 	"gophkeeper/internal/service"
 	"io"
 	"os"
@@ -24,21 +23,6 @@ type Storage interface {
 type FileStorage struct {
 	outputPath string
 }
-
-const (
-	LogopassFile   = "LogoPasses.json"
-	TextFile       = "TextData.json"
-	CreditCardFile = "CreditCards.json"
-	BinaryListFile = "BinaryList.json"
-)
-
-var (
-	ErrUserExists         = errors.New("user already exists")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrAlreadyExists      = errors.New("already exists")
-	ErrEmpty              = errors.New("no data")
-	ErrOldData            = errors.New("newer data available on remote storage")
-)
 
 func NewStorage(path string) (*FileStorage, error) {
 
