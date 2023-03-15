@@ -5,13 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b4dff315-363f-4b32-8ebd-d5bf3ef80197" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/cmd/cli/client/local_storage.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/cli/cli.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/cli.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/cli/client/access_api.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/client/access_api.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/cli/client/methods.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/client/service.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/cli/client/local_storage.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/client/local_storage.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/cli/client/service.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/client/service.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/cli/client/ui.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/cli/client/ui.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/app/app.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/app/app.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

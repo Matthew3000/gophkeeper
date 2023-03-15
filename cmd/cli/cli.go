@@ -39,10 +39,13 @@ func main() {
 	printBuildData()
 
 	var api = client.NewApi(cfg.ServerAddress)
-	var storage = client.NewStorage(cfg.OutputFolder)
+	var storage, err = client.NewStorage(cfg.OutputFolder)
+	if err != nil {
+		log.Fatal(err)
+	}
 	var service = client.NewService(cfg, api, storage)
 
-	err := service.Communicate()
+	err = service.Communicate()
 	if err != nil {
 		log.Fatal(err)
 	}

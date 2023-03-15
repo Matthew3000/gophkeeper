@@ -6,6 +6,8 @@ import (
 	"os"
 )
 
+const DateTimeLayout = "02.01.2006 15:04:05"
+
 func (svc *LocalService) Communicate() error {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -33,6 +35,9 @@ auth:
 		err = svc.Auth(login, password)
 	case "2":
 		err = svc.Register(login, password)
+	default:
+		fmt.Println("Houston we gor problem ")
+		goto auth
 	}
 	if err != nil {
 		fmt.Print(err)
@@ -70,6 +75,9 @@ initialActionChoice:
 		err = svc.ShowBinaryList()
 	case "8":
 		err = svc.UploadBinary()
+	default:
+		fmt.Println("Houston we gor problem ")
+		goto initialActionChoice
 	}
 	if err != nil {
 		fmt.Print(err)
