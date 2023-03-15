@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func Communicate() error {
+func (svc *LocalService) Communicate() error {
 	reader := bufio.NewReader(os.Stdin)
 
 auth:
@@ -30,9 +30,9 @@ auth:
 
 	switch choice {
 	case "1":
-		err = Auth(login, password)
+		err = svc.Auth(login, password)
 	case "2":
-		err = Register(login, password)
+		err = svc.Register(login, password)
 	}
 	if err != nil {
 		fmt.Print(err)
@@ -55,21 +55,21 @@ initialActionChoice:
 	}
 	switch choice {
 	case "1":
-		err = ShowLogoPasses()
+		err = svc.ShowLogoPasses()
 	case "2":
-		err = UploadLogoPass()
+		err = svc.UploadLogoPass()
 	case "3":
-		err = ShowTexts()
+		err = svc.ShowTexts()
 	case "4":
-		err = UploadText()
+		err = svc.UploadText()
 	case "5":
-		err = ShowCreditCards()
+		err = svc.ShowCreditCards()
 	case "6":
-		err = UploadCreditCard()
+		err = svc.UploadCreditCard()
 	case "7":
-		err = ShowBinaryList()
+		err = svc.ShowBinaryList()
 	case "8":
-		err = UploadBinary()
+		err = svc.UploadBinary()
 	}
 	if err != nil {
 		fmt.Print(err)
