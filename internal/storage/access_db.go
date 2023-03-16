@@ -244,7 +244,6 @@ func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) (ser
 
 func (dbStorage DBStorage) GetBinary(login string, ctx context.Context) (service.BinaryData, error) {
 	var binary service.BinaryData
-
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).First(&binary).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
