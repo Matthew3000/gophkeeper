@@ -16,7 +16,7 @@ type Api interface {
 	GetTexts() ([]service.TextData, error)
 	GetCreditCards() ([]service.CreditCard, error)
 	GetBinaryList() ([]service.BinaryData, error)
-	GetBinary() (service.BinaryData, error)
+	GetBinary(binary service.BinaryData) (service.BinaryData, error)
 	PutLogoPass(logoPass service.LogoPass) error
 	PutText(text service.TextData) error
 	PutCreditCard(card service.CreditCard) error
@@ -127,9 +127,13 @@ func (api ServerApi) GetBinaryList() ([]service.BinaryData, error) {
 	return binaryList, nil
 }
 
-func (api ServerApi) GetBinary() (service.BinaryData, error) {
-	var binary service.BinaryData
-	resp, err := http.Get(api.BaseURL + app.GetBinaryEndpoint)
+func (api ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, error) {
+	jsonBody, err := json.Marshal(binary)
+	if err != nil {
+		return binary, err
+	}
+
+	resp, err := http.Post(api.BaseURL+app.GetBinaryEndpoint, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return binary, err
 	}

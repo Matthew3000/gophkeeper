@@ -1,6 +1,9 @@
 package client
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type Config struct {
 	ServerAddress string `env:"SERVER_ADDRESS"   envDefault:"localhost:8080"`
@@ -10,10 +13,11 @@ type Config struct {
 const DateTimeLayout = "02.01.2006 15:04:05"
 
 const (
-	LogopassFile   = "LogoPasses.json"
-	TextFile       = "TextData.json"
-	CreditCardFile = "CreditCards.json"
-	BinaryListFile = "BinaryList.json"
+	LogopassFile    = "LogoPasses.json"
+	TextFile        = "TextData.json"
+	CreditCardFile  = "CreditCards.json"
+	BinaryListFile  = "BinaryList.json"
+	UpdateDataTimer = 300 * time.Second
 )
 
 var (

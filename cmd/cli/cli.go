@@ -45,6 +45,21 @@ func main() {
 	}
 	var service = client.NewService(cfg, api, storage)
 
+	/*	tickerUpdate := time.NewTicker(client.UpdateDataTimer)
+		<-tickerUpdate.C
+		go func() {
+			for range tickerUpdate.C {
+				log.Printf("Updating data from server")
+				err := service.UpdateAll()
+				if err != nil {
+					if errors.Is(err, &net.OpError{}) {
+						fmt.Println("Update failed due to poor internet connection, continuing offline")
+					}
+					log.Printf("update data from server: %s", err)
+				}
+			}
+		}()*/
+
 	err = service.StartCommunicate()
 	if err != nil {
 		log.Fatal(err)

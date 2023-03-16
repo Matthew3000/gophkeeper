@@ -211,9 +211,9 @@ func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) ([]s
 	return binaryList, nil
 }
 
-func (dbStorage DBStorage) GetBinary(login string, ctx context.Context) (service.BinaryData, error) {
-	var binary service.BinaryData
-	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).First(&binary).Error
+func (dbStorage DBStorage) GetBinary(binary service.BinaryData, ctx context.Context) (service.BinaryData, error) {
+	err := dbStorage.db.WithContext(ctx).Where("login  = 	? AND description = ?",
+		binary.Login, binary.Description).First(&binary).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return binary, ErrEmpty

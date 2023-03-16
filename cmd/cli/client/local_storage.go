@@ -12,7 +12,7 @@ type Storage interface {
 	StoreLogoPasses(listLogoPasses []service.LogoPass) ([]service.LogoPass, error)
 	StoreTexts(listTexts []service.TextData) ([]service.TextData, error)
 	StoreCreditCards(listCreditCards []service.CreditCard) ([]service.CreditCard, error)
-	StoreBinaries(binaryList []service.BinaryData) ([]service.BinaryData, error)
+	StoreBinaries(binaryList []service.BinaryData) error
 	UpdateLogoPass(logoPass service.LogoPass) error
 	UpdateText(Text service.TextData) error
 	UpdateCreditCard(CreditCard service.CreditCard) error
@@ -227,12 +227,10 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 	return updCreditCards, nil
 
 }
-func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) ([]service.BinaryData, error) {
-	var updBinaries []service.BinaryData
-
+func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) error {
 	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR, 0644)
 	if err != nil {
-		return updBinaries, err
+		return err
 	}
 	defer file.Close()
 
@@ -241,13 +239,13 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) (
 
 	data, err := io.ReadAll(file)
 	if err != nil {
-		return updBinaries, err
+		return err
 	}
 
 	var storedBinaries []service.BinaryData
 	err = json.Unmarshal(data, &storedBinaries)
 	if err != nil {
-		return updBinaries, err
+		return err
 	}
 	for _, serverBinary := range serverBinaries {
 		newEntry := true
@@ -256,9 +254,6 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) (
 				if serverBinary.UpdatedAt.After(storedBinary.UpdatedAt) {
 					storedBinary = serverBinary
 					newEntry = false
-				} else {
-					storedBinary.Overwrite = true
-					updBinaries = append(updBinaries, storedBinary)
 				}
 			}
 		}
@@ -266,32 +261,23 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) (
 			storedBinaries = append(storedBinaries, serverBinary)
 		}
 	}
-	for _, storedBinary := range storedBinaries {
-		newEntry := true
-		for _, serverBinary := range serverBinaries {
-			if serverBinary.Description == storedBinary.Description {
-				newEntry = false
-			}
-		}
-		if newEntry {
-			updBinaries = append(updBinaries, storedBinary)
-		}
-	}
 
 	jsonBytes, err := json.Marshal(storedBinaries)
 	if err != nil {
-		return updBinaries, err
+		return err
 	}
 	err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
 	if err != nil {
-		return updBinaries, err
+		return err
 	}
 	mutex.Unlock()
 
-	return updBinaries, nil
+	return nil
 }
 
 func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
+	var mutex sync.Mutex
+	mutex.Lock()
 	file, err := os.Open(storage.outputPath + LogopassFile)
 	if err != nil {
 		return err
@@ -329,11 +315,14 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		return err
 	}
+	mutex.Unlock()
 
 	return nil
 }
 
 func (storage *FileStorage) UpdateText(text service.TextData) error {
+	var mutex sync.Mutex
+	mutex.Lock()
 	file, err := os.Open(storage.outputPath + TextFile)
 	if err != nil {
 		return err
@@ -371,11 +360,14 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 	if err != nil {
 		return err
 	}
+	mutex.Unlock()
 
 	return nil
 }
 
 func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) error {
+	var mutex sync.Mutex
+	mutex.Lock()
 	file, err := os.Open(storage.outputPath + CreditCardFile)
 	if err != nil {
 		return err
@@ -413,11 +405,14 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 	if err != nil {
 		return err
 	}
+	mutex.Unlock()
 
 	return nil
 }
 
 func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
+	var mutex sync.Mutex
+	mutex.Lock()
 	file, err := os.Open(storage.outputPath + BinaryListFile)
 	if err != nil {
 		return err
@@ -455,6 +450,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 	if err != nil {
 		return err
 	}
+	mutex.Unlock()
 
 	return nil
 }

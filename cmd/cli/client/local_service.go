@@ -2,10 +2,12 @@ package client
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"gophkeeper/internal/service"
 	"gophkeeper/internal/tools"
+	"net"
 	"os"
 	"strconv"
 	"time"
@@ -24,6 +26,7 @@ type Service interface {
 	UploadText(text service.TextData) error
 	UploadCreditCard(creditCard service.CreditCard) error
 	UploadBinary(binary service.BinaryData) error
+	DownloadBinary(binary service.BinaryData) error
 }
 
 type LocalService struct {
@@ -134,10 +137,12 @@ func (svc *LocalService) Auth(login, password string) error {
 	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
 	fmt.Println("Authorization successful, updating, please wait")
 
-	//TODO offline
-
 	err = svc.UpdateAll()
 	if err != nil {
+		if errors.Is(err, &net.OpError{}) {
+			fmt.Println("Update failed due to poor internet connection, continuing offline")
+			return nil
+		}
 		return err
 	}
 	fmt.Println("Update successful")
@@ -176,9 +181,40 @@ func (svc *LocalService) UpdateAll() error {
 		return err
 	}
 
-	err = svc.storage.StoreAllData(listLogoPasses, listTexts, listCreditCards, binaryList)
+	updLogoPasses, err := svc.storage.StoreLogoPasses(listLogoPasses)
 	if err != nil {
 		return err
+	}
+	updTexts, err := svc.storage.StoreTexts(listTexts)
+	if err != nil {
+		return err
+	}
+	updCreditCards, err := svc.storage.StoreCreditCards(listCreditCards)
+	if err != nil {
+		return err
+	}
+	err = svc.storage.StoreBinaries(binaryList)
+	if err != nil {
+		return err
+	}
+
+	for _, logoPass := range updLogoPasses {
+		err := svc.api.PutLogoPass(logoPass)
+		if err != nil {
+			return err
+		}
+	}
+	for _, text := range updTexts {
+		err := svc.api.PutText(text)
+		if err != nil {
+			return err
+		}
+	}
+	for _, card := range updCreditCards {
+		err := svc.api.PutCreditCard(card)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -538,7 +574,7 @@ func (svc *LocalService) ShowBinaryList() error {
 	table.Render()
 
 updateBinary:
-	fmt.Print("If you want to update any credit card info enter it's ID\n" +
+	fmt.Print("If you want to update or download any binary enter it's ID\n" +
 		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
 	choice, err := reader.ReadString('\n')
@@ -550,7 +586,6 @@ updateBinary:
 		return nil
 	default:
 		var updBinary service.BinaryData
-		updBinary.Overwrite = true
 		id, err := strconv.ParseUint(choice, 10, 32)
 		if err != nil {
 			fmt.Println("I feel you bro, but i just dont get it, please try again")
@@ -567,10 +602,31 @@ updateBinary:
 			fmt.Println("There is no such ID, try again")
 			goto updateBinary
 		}
-		err = svc.UploadBinary(updBinary)
+
+		fmt.Print("If you want to update: type 1\n" +
+			"if you want to download: type 2\n" +
+			"otherwise: type exit\n")
+		choice, err = reader.ReadString('\n')
 		if err != nil {
-			fmt.Println(err)
-			goto updateBinary
+			fmt.Println("Error reading input: ", err)
+		}
+		switch choice {
+		case "exit":
+			return nil
+		case "1":
+			updBinary.Overwrite = true
+			err = svc.UploadBinary(updBinary)
+			if err != nil {
+				fmt.Println(err)
+				goto updateBinary
+			}
+		case "2":
+			err = svc.DownloadBinary(updBinary)
+			if err != nil {
+				fmt.Println(err)
+				goto updateBinary
+			}
+		default:
 		}
 	}
 	return nil
@@ -617,5 +673,35 @@ func (svc *LocalService) UploadBinary(binary service.BinaryData) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
+	return nil
+}
+
+func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
+	fmt.Println("Please enter a path to folder where you want to save a binary")
+	reader := bufio.NewReader(os.Stdin)
+	path, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+	err = os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Please enter a name for a file")
+	name, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+	}
+
+	binary, err = svc.api.GetBinary(binary)
+	if err != nil {
+		return err
+	}
+
+	data, err := tools.DecryptString(binary.Binary, svc.key)
+	err = os.WriteFile(path+"/"+name, []byte(data), 0644)
+	if err != nil {
+		return err
+	}
 	return nil
 }

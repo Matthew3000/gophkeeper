@@ -296,7 +296,7 @@ func (app *App) DownloadBinary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	binary, err = app.userStorage.GetBinary(binary.Login, r.Context())
+	binary, err = app.userStorage.GetBinary(binary, r.Context())
 	if err != nil {
 		log.Printf("get binary: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
