@@ -9,6 +9,7 @@ import (
 )
 
 type Storage interface {
+	UpdatePath(path string) error
 	StoreLogoPasses(listLogoPasses []service.LogoPass) ([]service.LogoPass, error)
 	StoreTexts(listTexts []service.TextData) ([]service.TextData, error)
 	StoreCreditCards(listCreditCards []service.CreditCard) ([]service.CreditCard, error)
@@ -36,10 +37,19 @@ func NewStorage(path string) (*FileStorage, error) {
 	return &FileStorage{outputPath: path}, nil
 }
 
+func (storage *FileStorage) UpdatePath(path string) error {
+	storage.outputPath += path
+	err := os.MkdirAll(storage.outputPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass) ([]service.LogoPass, error) {
 	var updLogoPasses []service.LogoPass
 
-	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR, 0644)
+	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updLogoPasses, err
 	}
@@ -54,9 +64,11 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 	}
 
 	var storedLogoPasses []service.LogoPass
-	err = json.Unmarshal(data, &storedLogoPasses)
-	if err != nil {
-		return updLogoPasses, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &storedLogoPasses)
+		if err != nil {
+			return updLogoPasses, err
+		}
 	}
 	for _, serverLogoPass := range serverLogoPasses {
 		newEntry := true
@@ -103,7 +115,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]service.TextData, error) {
 	var updTexts []service.TextData
 
-	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR, 0644)
+	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updTexts, err
 	}
@@ -118,9 +130,11 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 	}
 
 	var storedTexts []service.TextData
-	err = json.Unmarshal(data, &storedTexts)
-	if err != nil {
-		return updTexts, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &storedTexts)
+		if err != nil {
+			return updTexts, err
+		}
 	}
 	for _, serverText := range serverTexts {
 		newEntry := true
@@ -166,7 +180,7 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditCard) ([]service.CreditCard, error) {
 	var updCreditCards []service.CreditCard
 
-	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR, 0644)
+	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updCreditCards, err
 	}
@@ -181,9 +195,11 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 	}
 
 	var storedCreditCards []service.CreditCard
-	err = json.Unmarshal(data, &storedCreditCards)
-	if err != nil {
-		return updCreditCards, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &storedCreditCards)
+		if err != nil {
+			return updCreditCards, err
+		}
 	}
 	for _, serverCard := range serverCreditCards {
 		newEntry := true
@@ -228,7 +244,7 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 
 }
 func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) error {
-	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR, 0644)
+	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -243,9 +259,11 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 	}
 
 	var storedBinaries []service.BinaryData
-	err = json.Unmarshal(data, &storedBinaries)
-	if err != nil {
-		return err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &storedBinaries)
+		if err != nil {
+			return err
+		}
 	}
 	for _, serverBinary := range serverBinaries {
 		newEntry := true
@@ -278,7 +296,8 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	var mutex sync.Mutex
 	mutex.Lock()
-	file, err := os.Open(storage.outputPath + LogopassFile)
+
+	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -290,11 +309,12 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	}
 
 	var listLogoPasses []service.LogoPass
-	err = json.Unmarshal(data, &listLogoPasses)
-	if err != nil {
-		return err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listLogoPasses)
+		if err != nil {
+			return err
+		}
 	}
-
 	for _, existingLogoPass := range listLogoPasses {
 		if existingLogoPass.Description == logoPass.Description {
 			if logoPass.Overwrite {
@@ -323,7 +343,8 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 func (storage *FileStorage) UpdateText(text service.TextData) error {
 	var mutex sync.Mutex
 	mutex.Lock()
-	file, err := os.Open(storage.outputPath + TextFile)
+	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR|os.O_CREATE, 0644)
+
 	if err != nil {
 		return err
 	}
@@ -335,11 +356,12 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 	}
 
 	var listTexts []service.TextData
-	err = json.Unmarshal(data, &listTexts)
-	if err != nil {
-		return err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listTexts)
+		if err != nil {
+			return err
+		}
 	}
-
 	for _, existingText := range listTexts {
 		if existingText.Description == text.Description {
 			if text.Overwrite {
@@ -368,7 +390,8 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) error {
 	var mutex sync.Mutex
 	mutex.Lock()
-	file, err := os.Open(storage.outputPath + CreditCardFile)
+
+	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -380,11 +403,12 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 	}
 
 	var listCreditCards []service.CreditCard
-	err = json.Unmarshal(data, &listCreditCards)
-	if err != nil {
-		return err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listCreditCards)
+		if err != nil {
+			return err
+		}
 	}
-
 	for _, existingCreditCard := range listCreditCards {
 		if existingCreditCard.Number == creditCard.Number {
 			if creditCard.Overwrite {
@@ -413,7 +437,8 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 	var mutex sync.Mutex
 	mutex.Lock()
-	file, err := os.Open(storage.outputPath + BinaryListFile)
+
+	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -425,11 +450,12 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 	}
 
 	var binaryList []service.BinaryData
-	err = json.Unmarshal(data, &binaryList)
-	if err != nil {
-		return err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &binaryList)
+		if err != nil {
+			return err
+		}
 	}
-
 	for _, existingBinary := range binaryList {
 		if existingBinary.Description == binary.Description {
 			if binary.Overwrite {
@@ -468,12 +494,12 @@ func (storage *FileStorage) GetLogoPasses() ([]service.LogoPass, error) {
 	if err != nil {
 		return listLogoPasses, err
 	}
-
-	err = json.Unmarshal(data, &listLogoPasses)
-	if err != nil {
-		return listLogoPasses, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listLogoPasses)
+		if err != nil {
+			return listLogoPasses, err
+		}
 	}
-
 	return listLogoPasses, nil
 }
 func (storage *FileStorage) GetTexts() ([]service.TextData, error) {
@@ -489,12 +515,12 @@ func (storage *FileStorage) GetTexts() ([]service.TextData, error) {
 	if err != nil {
 		return listTexts, err
 	}
-
-	err = json.Unmarshal(data, &listTexts)
-	if err != nil {
-		return listTexts, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listTexts)
+		if err != nil {
+			return listTexts, err
+		}
 	}
-
 	return listTexts, nil
 }
 func (storage *FileStorage) GetCreditCards() ([]service.CreditCard, error) {
@@ -511,11 +537,12 @@ func (storage *FileStorage) GetCreditCards() ([]service.CreditCard, error) {
 		return listCreditCards, err
 	}
 
-	err = json.Unmarshal(data, &listCreditCards)
-	if err != nil {
-		return listCreditCards, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &listCreditCards)
+		if err != nil {
+			return listCreditCards, err
+		}
 	}
-
 	return listCreditCards, nil
 }
 func (storage *FileStorage) GetBinaryList() ([]service.BinaryData, error) {
@@ -531,11 +558,11 @@ func (storage *FileStorage) GetBinaryList() ([]service.BinaryData, error) {
 	if err != nil {
 		return BinaryList, err
 	}
-
-	err = json.Unmarshal(data, &BinaryList)
-	if err != nil {
-		return BinaryList, err
+	if len(data) != 0 {
+		err = json.Unmarshal(data, &BinaryList)
+		if err != nil {
+			return BinaryList, err
+		}
 	}
-
 	return BinaryList, nil
 }

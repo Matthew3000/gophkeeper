@@ -50,21 +50,21 @@ auth:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 
 	fmt.Println("Enter your login")
 	login, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	login = strings.TrimRight(login, "\n")
+	login = strings.TrimRight(login, "\r\n")
 
 	fmt.Println("Enter your password")
 	password, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	password = strings.TrimRight(password, "\n")
+	password = strings.TrimRight(password, "\r\n")
 
 	switch choice {
 	case "1":
@@ -94,7 +94,7 @@ initialActionChoice:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 	switch choice {
 	case "1":
 		err = svc.ShowLogoPasses()
@@ -140,6 +140,10 @@ func (svc *LocalService) Auth(login, password string) error {
 	}
 	svc.key = password
 	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
+	err = svc.storage.UpdatePath(fmt.Sprintf("_%s/", login))
+	if err != nil {
+		return err
+	}
 	fmt.Println("Authorization successful, updating, please wait")
 
 	err = svc.UpdateAll()
@@ -164,6 +168,10 @@ func (svc *LocalService) Register(login, password string) error {
 	}
 	svc.key = password
 	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
+	err = svc.storage.UpdatePath(fmt.Sprintf("_%s/", login))
+	if err != nil {
+		return err
+	}
 	fmt.Println("Registration successful, please proceed")
 	return nil
 }
@@ -260,7 +268,7 @@ updateLogoPass:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 
 	switch choice {
 	case "exit":
@@ -302,14 +310,14 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	logoPass.SecretLogin = strings.TrimRight(logoPass.SecretLogin, "\n")
+	logoPass.SecretLogin = strings.TrimRight(logoPass.SecretLogin, "\r\n")
 
 	fmt.Println("Please, enter password")
 	logoPass.SecretPass, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	logoPass.SecretPass = strings.TrimRight(logoPass.SecretPass, "\n")
+	logoPass.SecretPass = strings.TrimRight(logoPass.SecretPass, "\r\n")
 
 	if logoPass.Description == "" {
 		fmt.Println("Please, enter description for the pair")
@@ -317,7 +325,7 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 		if err != nil {
 			fmt.Println("Error reading input: ", err)
 		}
-		logoPass.Description = strings.TrimRight(logoPass.Description, "\n")
+		logoPass.Description = strings.TrimRight(logoPass.Description, "\r\n")
 	}
 
 	logoPass.SecretPass, err = tools.EncryptString(logoPass.SecretPass, svc.key)
@@ -373,7 +381,7 @@ updateText:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 
 	switch choice {
 	case "exit":
@@ -416,7 +424,7 @@ func (svc *LocalService) UploadText(text service.TextData) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	text.Text = strings.TrimRight(text.Text, "\n")
+	text.Text = strings.TrimRight(text.Text, "\r\n")
 
 	if text.Description == "" {
 		fmt.Println("Please, enter description for the text")
@@ -424,7 +432,7 @@ func (svc *LocalService) UploadText(text service.TextData) error {
 		if err != nil {
 			fmt.Println("Error reading input: ", err)
 		}
-		text.Description = strings.TrimRight(text.Description, "\n")
+		text.Description = strings.TrimRight(text.Description, "\r\n")
 	}
 
 	text.Text, err = tools.EncryptString(text.Text, svc.key)
@@ -485,7 +493,7 @@ updateCard:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 
 	switch choice {
 	case "exit":
@@ -527,7 +535,7 @@ func (svc *LocalService) UploadCreditCard(creditCard service.CreditCard) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	creditCard.Holder = strings.TrimRight(creditCard.Holder, "\n")
+	creditCard.Holder = strings.TrimRight(creditCard.Holder, "\r\n")
 
 	if creditCard.Number == "" {
 		fmt.Println("Please, enter card number")
@@ -535,28 +543,28 @@ func (svc *LocalService) UploadCreditCard(creditCard service.CreditCard) error {
 		if err != nil {
 			fmt.Println("Error reading input: ", err)
 		}
-		creditCard.Number = strings.TrimRight(creditCard.Number, "\n")
+		creditCard.Number = strings.TrimRight(creditCard.Number, "\r\n")
 	}
 	fmt.Println("Please, enter due date")
 	creditCard.DueDate, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	creditCard.DueDate = strings.TrimRight(creditCard.DueDate, "\n")
+	creditCard.DueDate = strings.TrimRight(creditCard.DueDate, "\r\n")
 
 	fmt.Println("Please, enter CVC/CVV code")
 	creditCard.CVV, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	creditCard.CVV = strings.TrimRight(creditCard.CVV, "\n")
+	creditCard.CVV = strings.TrimRight(creditCard.CVV, "\r\n")
 
 	fmt.Println("Please, enter description for the card")
 	creditCard.Description, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	creditCard.Description = strings.TrimRight(creditCard.Description, "\n")
+	creditCard.Description = strings.TrimRight(creditCard.Description, "\r\n")
 
 	creditCard.Holder, err = tools.EncryptString(creditCard.Holder, svc.key)
 	if err != nil {
@@ -609,7 +617,7 @@ updateBinary:
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	choice = strings.TrimRight(choice, "\n")
+	choice = strings.TrimRight(choice, "\r\n")
 
 	switch choice {
 	case "exit":
@@ -640,7 +648,7 @@ updateBinary:
 		if err != nil {
 			fmt.Println("Error reading input: ", err)
 		}
-		choice = strings.TrimRight(choice, "\n")
+		choice = strings.TrimRight(choice, "\r\n")
 
 		switch choice {
 		case "exit":
@@ -673,14 +681,14 @@ func (svc *LocalService) UploadBinary(binary service.BinaryData) error {
 		if err != nil {
 			fmt.Println("Error reading input: ", err)
 		}
-		binary.Description = strings.TrimRight(binary.Description, "\n")
+		binary.Description = strings.TrimRight(binary.Description, "\r\n")
 	}
 	fmt.Println("Please, enter a path to upload your binary data")
 	path, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	path = strings.TrimRight(path, "\n")
+	path = strings.TrimRight(path, "\r\n")
 
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -717,7 +725,7 @@ func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	path = strings.TrimRight(path, "\n")
+	path = strings.TrimRight(path, "\r\n")
 
 	err = os.MkdirAll(path, os.ModePerm)
 	if err != nil {
@@ -728,7 +736,7 @@ func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	name = strings.TrimRight(name, "\n")
+	name = strings.TrimRight(name, "\r\n")
 
 	binary, err = svc.api.GetBinary(binary)
 	if err != nil {
