@@ -5,11 +5,14 @@ import (
 	"gophkeeper/internal/service"
 	"io"
 	"os"
+	"sync"
 )
 
 type Storage interface {
-	StoreAllData(listLogoPasses []service.LogoPass, listTexts []service.TextData,
-		listCreditCards []service.CreditCard, binaryList service.UserBinaryList) error
+	StoreLogoPasses(listLogoPasses []service.LogoPass) ([]service.LogoPass, error)
+	StoreTexts(listTexts []service.TextData) ([]service.TextData, error)
+	StoreCreditCards(listCreditCards []service.CreditCard) ([]service.CreditCard, error)
+	StoreBinaries(binaryList []service.BinaryData) ([]service.BinaryData, error)
 	UpdateLogoPass(logoPass service.LogoPass) error
 	UpdateText(Text service.TextData) error
 	UpdateCreditCard(CreditCard service.CreditCard) error
@@ -17,7 +20,7 @@ type Storage interface {
 	GetLogoPasses() ([]service.LogoPass, error)
 	GetTexts() ([]service.TextData, error)
 	GetCreditCards() ([]service.CreditCard, error)
-	GetBinaryList() (service.UserBinaryList, error)
+	GetBinaryList() ([]service.BinaryData, error)
 }
 
 type FileStorage struct {
@@ -33,48 +36,259 @@ func NewStorage(path string) (*FileStorage, error) {
 	return &FileStorage{outputPath: path}, nil
 }
 
-func (storage *FileStorage) StoreAllData(listLogoPasses []service.LogoPass, listTexts []service.TextData,
-	listCreditCards []service.CreditCard, binaryList service.UserBinaryList) error {
+func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass) ([]service.LogoPass, error) {
+	var updLogoPasses []service.LogoPass
 
-	//todo check for new stuff
-
-	jsonBytes, err := json.Marshal(listLogoPasses)
+	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR, 0644)
 	if err != nil {
-		return err
+		return updLogoPasses, err
+	}
+	defer file.Close()
+
+	var mutex sync.Mutex
+	mutex.Lock()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return updLogoPasses, err
+	}
+
+	var storedLogoPasses []service.LogoPass
+	err = json.Unmarshal(data, &storedLogoPasses)
+	if err != nil {
+		return updLogoPasses, err
+	}
+	for _, serverLogoPass := range serverLogoPasses {
+		newEntry := true
+		for _, storedLogoPass := range storedLogoPasses {
+			if serverLogoPass.Description == storedLogoPass.Description {
+				if serverLogoPass.UpdatedAt.After(storedLogoPass.UpdatedAt) {
+					storedLogoPass = serverLogoPass
+					newEntry = false
+				} else {
+					storedLogoPass.Overwrite = true
+					updLogoPasses = append(updLogoPasses, storedLogoPass)
+				}
+			}
+		}
+		if newEntry {
+			storedLogoPasses = append(storedLogoPasses, serverLogoPass)
+		}
+	}
+	for _, storedLogoPass := range storedLogoPasses {
+		newEntry := true
+		for _, serverLogoPass := range serverLogoPasses {
+			if serverLogoPass.Description == storedLogoPass.Description {
+				newEntry = false
+			}
+		}
+		if newEntry {
+			updLogoPasses = append(updLogoPasses, storedLogoPass)
+		}
+	}
+
+	jsonBytes, err := json.Marshal(storedLogoPasses)
+	if err != nil {
+		return updLogoPasses, err
 	}
 	err = os.WriteFile(storage.outputPath+LogopassFile, jsonBytes, 0644)
 	if err != nil {
-		return err
+		return updLogoPasses, err
+	}
+	mutex.Unlock()
+
+	return updLogoPasses, nil
+}
+
+func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]service.TextData, error) {
+	var updTexts []service.TextData
+
+	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR, 0644)
+	if err != nil {
+		return updTexts, err
+	}
+	defer file.Close()
+
+	var mutex sync.Mutex
+	mutex.Lock()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return updTexts, err
 	}
 
-	jsonBytes, err = json.Marshal(listTexts)
+	var storedTexts []service.TextData
+	err = json.Unmarshal(data, &storedTexts)
 	if err != nil {
-		return err
+		return updTexts, err
+	}
+	for _, serverText := range serverTexts {
+		newEntry := true
+		for _, storedText := range storedTexts {
+			if serverText.Description == storedText.Description {
+				if serverText.UpdatedAt.After(storedText.UpdatedAt) {
+					storedText = serverText
+					newEntry = false
+				} else {
+					storedText.Overwrite = true
+					updTexts = append(updTexts, storedText)
+				}
+			}
+		}
+		if newEntry {
+			storedTexts = append(storedTexts, serverText)
+		}
+	}
+	for _, storedText := range storedTexts {
+		newEntry := true
+		for _, serverText := range serverTexts {
+			if serverText.Description == storedText.Description {
+				newEntry = false
+			}
+		}
+		if newEntry {
+			updTexts = append(updTexts, storedText)
+		}
+	}
+
+	jsonBytes, err := json.Marshal(storedTexts)
+	if err != nil {
+		return updTexts, err
 	}
 	err = os.WriteFile(storage.outputPath+TextFile, jsonBytes, 0644)
 	if err != nil {
-		return err
+		return updTexts, err
+	}
+	mutex.Unlock()
+
+	return updTexts, nil
+}
+func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditCard) ([]service.CreditCard, error) {
+	var updCreditCards []service.CreditCard
+
+	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR, 0644)
+	if err != nil {
+		return updCreditCards, err
+	}
+	defer file.Close()
+
+	var mutex sync.Mutex
+	mutex.Lock()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return updCreditCards, err
 	}
 
-	jsonBytes, err = json.Marshal(listCreditCards)
+	var storedCreditCards []service.CreditCard
+	err = json.Unmarshal(data, &storedCreditCards)
 	if err != nil {
-		return err
+		return updCreditCards, err
+	}
+	for _, serverCard := range serverCreditCards {
+		newEntry := true
+		for _, storedCard := range storedCreditCards {
+			if serverCard.Number == storedCard.Number {
+				if serverCard.UpdatedAt.After(storedCard.UpdatedAt) {
+					storedCard = serverCard
+					newEntry = false
+				} else {
+					storedCard.Overwrite = true
+					updCreditCards = append(updCreditCards, storedCard)
+				}
+			}
+		}
+		if newEntry {
+			storedCreditCards = append(storedCreditCards, serverCard)
+		}
+	}
+	for _, storedCard := range storedCreditCards {
+		newEntry := true
+		for _, serverCard := range serverCreditCards {
+			if serverCard.Number == storedCard.Number {
+				newEntry = false
+			}
+		}
+		if newEntry {
+			updCreditCards = append(updCreditCards, storedCard)
+		}
+	}
+
+	jsonBytes, err := json.Marshal(storedCreditCards)
+	if err != nil {
+		return updCreditCards, err
 	}
 	err = os.WriteFile(storage.outputPath+CreditCardFile, jsonBytes, 0644)
 	if err != nil {
-		return err
+		return updCreditCards, err
+	}
+	mutex.Unlock()
+
+	return updCreditCards, nil
+
+}
+func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) ([]service.BinaryData, error) {
+	var updBinaries []service.BinaryData
+
+	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR, 0644)
+	if err != nil {
+		return updBinaries, err
+	}
+	defer file.Close()
+
+	var mutex sync.Mutex
+	mutex.Lock()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return updBinaries, err
 	}
 
-	jsonBytes, err = json.Marshal(binaryList)
+	var storedBinaries []service.BinaryData
+	err = json.Unmarshal(data, &storedBinaries)
 	if err != nil {
-		return err
+		return updBinaries, err
+	}
+	for _, serverBinary := range serverBinaries {
+		newEntry := true
+		for _, storedBinary := range storedBinaries {
+			if serverBinary.Description == storedBinary.Description {
+				if serverBinary.UpdatedAt.After(storedBinary.UpdatedAt) {
+					storedBinary = serverBinary
+					newEntry = false
+				} else {
+					storedBinary.Overwrite = true
+					updBinaries = append(updBinaries, storedBinary)
+				}
+			}
+		}
+		if newEntry {
+			storedBinaries = append(storedBinaries, serverBinary)
+		}
+	}
+	for _, storedBinary := range storedBinaries {
+		newEntry := true
+		for _, serverBinary := range serverBinaries {
+			if serverBinary.Description == storedBinary.Description {
+				newEntry = false
+			}
+		}
+		if newEntry {
+			updBinaries = append(updBinaries, storedBinary)
+		}
+	}
+
+	jsonBytes, err := json.Marshal(storedBinaries)
+	if err != nil {
+		return updBinaries, err
 	}
 	err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
 	if err != nil {
-		return err
+		return updBinaries, err
 	}
+	mutex.Unlock()
 
-	return nil
+	return updBinaries, nil
 }
 
 func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
@@ -119,7 +333,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	return nil
 }
 
-func (storage *FileStorage) UpdateText(Text service.TextData) error {
+func (storage *FileStorage) UpdateText(text service.TextData) error {
 	file, err := os.Open(storage.outputPath + TextFile)
 	if err != nil {
 		return err
@@ -138,14 +352,14 @@ func (storage *FileStorage) UpdateText(Text service.TextData) error {
 	}
 
 	for _, existingText := range listTexts {
-		if existingText.Description == Text.Description {
-			if Text.Overwrite {
-				existingText = Text
+		if existingText.Description == text.Description {
+			if text.Overwrite {
+				existingText = text
 			} else {
 				return ErrAlreadyExists
 			}
 		} else {
-			listTexts = append(listTexts, Text)
+			listTexts = append(listTexts, text)
 		}
 	}
 
@@ -161,7 +375,7 @@ func (storage *FileStorage) UpdateText(Text service.TextData) error {
 	return nil
 }
 
-func (storage *FileStorage) UpdateCreditCard(CreditCard service.CreditCard) error {
+func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) error {
 	file, err := os.Open(storage.outputPath + CreditCardFile)
 	if err != nil {
 		return err
@@ -180,14 +394,14 @@ func (storage *FileStorage) UpdateCreditCard(CreditCard service.CreditCard) erro
 	}
 
 	for _, existingCreditCard := range listCreditCards {
-		if existingCreditCard.Number == CreditCard.Number {
-			if CreditCard.Overwrite {
-				existingCreditCard = CreditCard
+		if existingCreditCard.Number == creditCard.Number {
+			if creditCard.Overwrite {
+				existingCreditCard = creditCard
 			} else {
 				return ErrAlreadyExists
 			}
 		} else {
-			listCreditCards = append(listCreditCards, CreditCard)
+			listCreditCards = append(listCreditCards, creditCard)
 		}
 	}
 
@@ -215,17 +429,21 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 		return err
 	}
 
-	var binaryList service.UserBinaryList
+	var binaryList []service.BinaryData
 	err = json.Unmarshal(data, &binaryList)
 	if err != nil {
 		return err
 	}
 
-	for _, existingBinary := range binaryList.BinaryList {
-		if existingBinary == binary.Description {
-			return ErrAlreadyExists
+	for _, existingBinary := range binaryList {
+		if existingBinary.Description == binary.Description {
+			if binary.Overwrite {
+				existingBinary = binary
+			} else {
+				return ErrAlreadyExists
+			}
 		} else {
-			binaryList.BinaryList = append(binaryList.BinaryList, binary.Description)
+			binaryList = append(binaryList, binary)
 		}
 	}
 
@@ -243,17 +461,85 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 
 func (storage *FileStorage) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
+
+	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return listLogoPasses, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return listLogoPasses, err
+	}
+
+	err = json.Unmarshal(data, &listLogoPasses)
+	if err != nil {
+		return listLogoPasses, err
+	}
+
 	return listLogoPasses, nil
 }
 func (storage *FileStorage) GetTexts() ([]service.TextData, error) {
 	var listTexts []service.TextData
+
+	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return listTexts, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return listTexts, err
+	}
+
+	err = json.Unmarshal(data, &listTexts)
+	if err != nil {
+		return listTexts, err
+	}
+
 	return listTexts, nil
 }
 func (storage *FileStorage) GetCreditCards() ([]service.CreditCard, error) {
 	var listCreditCards []service.CreditCard
+
+	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return listCreditCards, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return listCreditCards, err
+	}
+
+	err = json.Unmarshal(data, &listCreditCards)
+	if err != nil {
+		return listCreditCards, err
+	}
+
 	return listCreditCards, nil
 }
-func (storage *FileStorage) GetBinaryList() (service.UserBinaryList, error) {
-	var BinaryList service.UserBinaryList
+func (storage *FileStorage) GetBinaryList() ([]service.BinaryData, error) {
+	var BinaryList []service.BinaryData
+
+	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDONLY, 0644)
+	if err != nil {
+		return BinaryList, err
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return BinaryList, err
+	}
+
+	err = json.Unmarshal(data, &BinaryList)
+	if err != nil {
+		return BinaryList, err
+	}
+
 	return BinaryList, nil
 }

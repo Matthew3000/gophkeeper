@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"gophkeeper/internal/service"
 	"gorm.io/gorm"
-	"time"
 )
 
 func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) error {
@@ -48,7 +47,6 @@ func (dbStorage DBStorage) CheckUserAuth(authDetails service.Authentication, ctx
 }
 
 func (dbStorage DBStorage) PutLogoPass(logoPass service.LogoPass, ctx context.Context) error {
-	logoPass.UpdatedAt = time.Now()
 	var checkEntry service.LogoPass
 
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?  AND description = ?",
@@ -76,8 +74,7 @@ func (dbStorage DBStorage) PutLogoPass(logoPass service.LogoPass, ctx context.Co
 }
 
 func (dbStorage DBStorage) PutText(secret service.TextData, ctx context.Context) error {
-	secret.UpdatedAt = time.Now()
-	var checkEntry service.LogoPass
+	var checkEntry service.TextData
 
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?  AND description = ?",
 		secret.Login, secret.Description).First(&checkEntry).Error
@@ -104,8 +101,7 @@ func (dbStorage DBStorage) PutText(secret service.TextData, ctx context.Context)
 }
 
 func (dbStorage DBStorage) PutCreditCard(card service.CreditCard, ctx context.Context) error {
-	card.UpdatedAt = time.Now()
-	var checkEntry service.LogoPass
+	var checkEntry service.CreditCard
 
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?  AND number = ?",
 		card.Login, card.Number).First(&checkEntry).Error
@@ -132,24 +128,14 @@ func (dbStorage DBStorage) PutCreditCard(card service.CreditCard, ctx context.Co
 }
 
 func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Context) error {
-	binary.UpdatedAt = time.Now()
-	var checkEntry service.LogoPass
+	var checkEntry service.BinaryData
 
-	tx := dbStorage.db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	newEntry := false
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?  AND description = ?",
 		binary.Login, binary.Description).First(&checkEntry).Error
 	if err != nil {
 		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
-		newEntry = true
 	}
 	if !binary.Overwrite {
 		if checkEntry.Login != "" {
@@ -160,28 +146,9 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 	if checkEntry.UpdatedAt.After(binary.UpdatedAt) {
 		return ErrOldData
 	}
-	err = tx.WithContext(ctx).Save(&binary).Error
+	err = dbStorage.db.WithContext(ctx).Save(&binary).Error
 	if err != nil {
-		tx.Rollback()
 		return err
-	}
-
-	//add new description to user's list of binaries
-	if newEntry {
-		binaryList, err := dbStorage.GetBinaryList(binary.Login, ctx)
-		if err != nil {
-			if !errors.Is(err, ErrEmpty) {
-				tx.Rollback()
-				return err
-			}
-			binaryList.Login = binary.Login
-		}
-		binaryList.BinaryList = append(binaryList.BinaryList, binary.Description)
-		err = tx.WithContext(ctx).Save(&binaryList).Error
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	return nil
@@ -229,16 +196,18 @@ func (dbStorage DBStorage) BatchGetCreditCards(login string, ctx context.Context
 	return listCards, nil
 }
 
-func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) (service.UserBinaryList, error) {
-	var binaryList service.UserBinaryList
+func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) ([]service.BinaryData, error) {
+	var binaryList []service.BinaryData
 
-	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", login).First(&binaryList).Error
+	err := dbStorage.db.WithContext(ctx).Table("binaryData").Select("id, description, updated_at").
+		Where("login  = 	?", login).Find(&binaryList).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return binaryList, ErrEmpty
 		}
 		return binaryList, err
 	}
+
 	return binaryList, nil
 }
 
@@ -259,6 +228,5 @@ func (dbStorage DBStorage) DeleteAll() {
 	dbStorage.db.Exec("DELETE FROM logoPass")
 	dbStorage.db.Exec("DELETE FROM textData")
 	dbStorage.db.Exec("DELETE FROM creditCard")
-	dbStorage.db.Exec("DELETE FROM userBinaryList")
 	dbStorage.db.Exec("DELETE FROM binaryData")
 }

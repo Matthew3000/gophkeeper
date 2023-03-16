@@ -51,10 +51,6 @@ func InitializeTables(connection *gorm.DB) {
 	if err != nil {
 		log.Fatalf("database failed to create user table: %s", err)
 	}
-	err = connection.AutoMigrate(service.UserBinaryList{})
-	if err != nil {
-		log.Fatalf("database failed to create user table: %s", err)
-	}
 	err = connection.AutoMigrate(service.BinaryData{})
 	if err != nil {
 		log.Fatalf("database failed to create user table: %s", err)

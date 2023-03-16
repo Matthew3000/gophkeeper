@@ -15,7 +15,7 @@ type Api interface {
 	GetLogoPasses() ([]service.LogoPass, error)
 	GetTexts() ([]service.TextData, error)
 	GetCreditCards() ([]service.CreditCard, error)
-	GetBinaryList() (service.UserBinaryList, error)
+	GetBinaryList() ([]service.BinaryData, error)
 	GetBinary() (service.BinaryData, error)
 	PutLogoPass(logoPass service.LogoPass) error
 	PutText(text service.TextData) error
@@ -112,8 +112,8 @@ func (api ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 	return listCreditCards, nil
 }
 
-func (api ServerApi) GetBinaryList() (service.UserBinaryList, error) {
-	var binaryList service.UserBinaryList
+func (api ServerApi) GetBinaryList() ([]service.BinaryData, error) {
+	var binaryList []service.BinaryData
 	resp, err := http.Get(api.BaseURL + app.GetBinaryListEndpoint)
 	if err != nil {
 		return binaryList, err

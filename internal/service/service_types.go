@@ -26,21 +26,16 @@ type CreditCard struct {
 	Login       string `json:"-"`
 	Number      string `json:"number"`
 	Holder      string `json:"holder"`
-	DewDate     string `json:"dew_date"`
+	DueDate     string `json:"due_date"`
 	CVV         string `json:"cvv"`
 	Description string `json:"description,omitempty"`
 	Overwrite   bool   `json:"overwrite" gorm:"-"`
 }
 
-type UserBinaryList struct {
-	Login      string   `json:"-" gorm:"unique"`
-	BinaryList []string `json:"binary_list"`
-}
-
 type BinaryData struct {
 	gorm.Model
 	Login       string `json:"-"`
-	Binary      []byte `json:"binary"`
+	Binary      string `json:"binary"`
 	Description string `json:"description"`
 	Overwrite   bool   `json:"overwrite" gorm:"-"`
 }

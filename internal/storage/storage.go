@@ -16,7 +16,7 @@ type UserStorage interface {
 	PutCreditCard(card service.CreditCard, ctx context.Context) error
 	BatchGetCreditCards(login string, ctx context.Context) ([]service.CreditCard, error)
 	PutBinary(binary service.BinaryData, ctx context.Context) error
-	GetBinaryList(login string, ctx context.Context) (service.UserBinaryList, error)
+	GetBinaryList(login string, ctx context.Context) ([]service.BinaryData, error)
 	GetBinary(login string, ctx context.Context) (service.BinaryData, error)
 	DeleteAll()
 }

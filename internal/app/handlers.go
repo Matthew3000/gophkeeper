@@ -265,15 +265,14 @@ func (app *App) UploadBinary(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
-	var binaryList service.UserBinaryList
+	var binary service.BinaryData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
-	binaryList.Login = session.Values["login"].(string)
+	binary.Login = session.Values["login"].(string)
 
-	var err error
-	binaryList, err = app.userStorage.GetBinaryList(binaryList.Login, r.Context())
+	binaryList, err := app.userStorage.GetBinaryList(binary.Login, r.Context())
 	if err != nil {
-		log.Printf("get binary list: %s for user: %s", err, binaryList.Login)
+		log.Printf("get binary list: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
