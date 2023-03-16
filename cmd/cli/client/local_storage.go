@@ -36,6 +36,8 @@ func NewStorage(path string) (*FileStorage, error) {
 func (storage *FileStorage) StoreAllData(listLogoPasses []service.LogoPass, listTexts []service.TextData,
 	listCreditCards []service.CreditCard, binaryList service.UserBinaryList) error {
 
+	//todo check for new stuff
+
 	jsonBytes, err := json.Marshal(listLogoPasses)
 	if err != nil {
 		return err

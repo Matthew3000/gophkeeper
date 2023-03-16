@@ -185,6 +185,8 @@ func (svc *LocalService) ShowLogoPasses() error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Login", "Password", "Description", "Last updated"})
 
+	//TODO decryption
+
 	for _, logoPass := range listLogoPasses {
 		row := []string{strconv.FormatUint(uint64(logoPass.ID), 10), logoPass.SecretLogin, logoPass.SecretPass,
 			logoPass.Description, logoPass.UpdatedAt.Format(DateTimeLayout)}
@@ -241,7 +243,7 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
 	}
-	fmt.Println("Please, enter login")
+	fmt.Println("Please, enter password")
 	logoPass.SecretPass, err = reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
@@ -253,6 +255,8 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 			fmt.Println("Error reading input: ", err)
 		}
 	}
+
+	//TODO encryption
 
 	err = svc.api.PutLogoPass(logoPass)
 	if err != nil {
