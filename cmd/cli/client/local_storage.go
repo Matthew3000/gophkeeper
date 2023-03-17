@@ -314,17 +314,20 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 		if err != nil {
 			return err
 		}
-	}
-	for _, existingLogoPass := range listLogoPasses {
-		if existingLogoPass.Description == logoPass.Description {
-			if logoPass.Overwrite {
-				existingLogoPass = logoPass
+
+		for _, existingLogoPass := range listLogoPasses {
+			if existingLogoPass.Description == logoPass.Description {
+				if logoPass.Overwrite {
+					existingLogoPass = logoPass
+				} else {
+					return ErrAlreadyExists
+				}
 			} else {
-				return ErrAlreadyExists
+				listLogoPasses = append(listLogoPasses, logoPass)
 			}
-		} else {
-			listLogoPasses = append(listLogoPasses, logoPass)
 		}
+	} else {
+		listLogoPasses = append(listLogoPasses, logoPass)
 	}
 
 	jsonBytes, err := json.Marshal(listLogoPasses)
@@ -361,17 +364,20 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 		if err != nil {
 			return err
 		}
-	}
-	for _, existingText := range listTexts {
-		if existingText.Description == text.Description {
-			if text.Overwrite {
-				existingText = text
+
+		for _, existingText := range listTexts {
+			if existingText.Description == text.Description {
+				if text.Overwrite {
+					existingText = text
+				} else {
+					return ErrAlreadyExists
+				}
 			} else {
-				return ErrAlreadyExists
+				listTexts = append(listTexts, text)
 			}
-		} else {
-			listTexts = append(listTexts, text)
 		}
+	} else {
+		listTexts = append(listTexts, text)
 	}
 
 	jsonBytes, err := json.Marshal(listTexts)
@@ -408,17 +414,20 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 		if err != nil {
 			return err
 		}
-	}
-	for _, existingCreditCard := range listCreditCards {
-		if existingCreditCard.Number == creditCard.Number {
-			if creditCard.Overwrite {
-				existingCreditCard = creditCard
+
+		for _, existingCreditCard := range listCreditCards {
+			if existingCreditCard.Number == creditCard.Number {
+				if creditCard.Overwrite {
+					existingCreditCard = creditCard
+				} else {
+					return ErrAlreadyExists
+				}
 			} else {
-				return ErrAlreadyExists
+				listCreditCards = append(listCreditCards, creditCard)
 			}
-		} else {
-			listCreditCards = append(listCreditCards, creditCard)
 		}
+	} else {
+		listCreditCards = append(listCreditCards, creditCard)
 	}
 
 	jsonBytes, err := json.Marshal(listCreditCards)
@@ -455,17 +464,20 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 		if err != nil {
 			return err
 		}
-	}
-	for _, existingBinary := range binaryList {
-		if existingBinary.Description == binary.Description {
-			if binary.Overwrite {
-				existingBinary = binary
+
+		for _, existingBinary := range binaryList {
+			if existingBinary.Description == binary.Description {
+				if binary.Overwrite {
+					existingBinary = binary
+				} else {
+					return ErrAlreadyExists
+				}
 			} else {
-				return ErrAlreadyExists
+				binaryList = append(binaryList, binary)
 			}
-		} else {
-			binaryList = append(binaryList, binary)
 		}
+	} else {
+		binaryList = append(binaryList, binary)
 	}
 
 	jsonBytes, err := json.Marshal(binaryList)

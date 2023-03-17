@@ -25,6 +25,7 @@ type Api interface {
 
 type ServerApi struct {
 	BaseURL string
+	cookie  *http.Cookie
 }
 
 func NewApi(url string) *ServerApi {
@@ -42,6 +43,14 @@ func (api ServerApi) Register(user service.User) error {
 		return err
 	}
 	defer resp.Body.Close()
+
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == "session.id" {
+			api.cookie = cookie
+			break
+		}
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
@@ -61,6 +70,14 @@ func (api ServerApi) Login(user service.User) error {
 	}
 	defer resp.Body.Close()
 
+	cookies := resp.Cookies()
+	for _, cookie := range cookies {
+		if cookie.Name == "session.id" {
+			api.cookie = cookie
+			break
+		}
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
@@ -69,7 +86,18 @@ func (api ServerApi) Login(user service.User) error {
 
 func (api ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
-	resp, err := http.Get(api.BaseURL + app.GetLogoPassesEndpoint)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, api.BaseURL+app.GetLogoPassesEndpoint, nil)
+	req.AddCookie(api.cookie)
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	resp, err := client.Do(req)
 	if err != nil {
 		return listLogoPasses, err
 	}
@@ -154,7 +182,7 @@ func (api ServerApi) PutLogoPass(logoPass service.LogoPass) error {
 
 	resp, err := http.Post(api.BaseURL+app.PutLogoPassEndpoint, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -174,7 +202,7 @@ func (api ServerApi) PutText(text service.TextData) error {
 
 	resp, err := http.Post(api.BaseURL+app.PutTextEndpoint, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -194,7 +222,7 @@ func (api ServerApi) PutCreditCard(card service.CreditCard) error {
 
 	resp, err := http.Post(api.BaseURL+app.PutCreditCardEndpoint, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -214,7 +242,7 @@ func (api ServerApi) PutBinary(binary service.BinaryData) error {
 
 	resp, err := http.Post(api.BaseURL+app.PutBinaryEndpoint, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer resp.Body.Close()
 
