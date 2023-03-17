@@ -76,7 +76,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 			if serverLogoPass.Description == storedLogoPass.Description {
 				if serverLogoPass.UpdatedAt.After(storedLogoPass.UpdatedAt) {
 					storedLogoPasses[i] = serverLogoPass
-				} else {
+				} else if serverLogoPass.UpdatedAt.Before(storedLogoPass.UpdatedAt) {
 					storedLogoPass.Overwrite = true
 					updLogoPasses = append(updLogoPasses, storedLogoPass)
 				}
@@ -146,7 +146,7 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 			if serverText.Description == storedText.Description {
 				if serverText.UpdatedAt.After(storedText.UpdatedAt) {
 					storedTexts[i] = serverText
-				} else {
+				} else if serverText.UpdatedAt.Before(storedText.UpdatedAt) {
 					storedText.Overwrite = true
 					updTexts = append(updTexts, storedText)
 				}
@@ -215,7 +215,7 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 			if serverCard.Number == storedCard.Number {
 				if serverCard.UpdatedAt.After(storedCard.UpdatedAt) {
 					storedCreditCards[i] = serverCard
-				} else {
+				} else if serverCard.UpdatedAt.Before(storedCard.UpdatedAt) {
 					storedCard.Overwrite = true
 					updCreditCards = append(updCreditCards, storedCard)
 				}
@@ -281,9 +281,9 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 		newEntry := true
 		for _, storedBinary := range storedBinaries {
 			if serverBinary.Description == storedBinary.Description {
+				newEntry = false
 				if serverBinary.UpdatedAt.After(storedBinary.UpdatedAt) {
 					storedBinaries[i] = serverBinary
-					newEntry = false
 					break
 				}
 			}
