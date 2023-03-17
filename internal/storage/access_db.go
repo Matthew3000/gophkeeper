@@ -62,6 +62,8 @@ func (dbStorage DBStorage) PutLogoPass(logoPass service.LogoPass, ctx context.Co
 		}
 	}
 
+	logoPass.ID = checkEntry.ID
+
 	if checkEntry.UpdatedAt.After(logoPass.UpdatedAt) {
 		return ErrOldData
 	}
@@ -88,6 +90,8 @@ func (dbStorage DBStorage) PutText(secret service.TextData, ctx context.Context)
 			return ErrAlreadyExists
 		}
 	}
+
+	secret.ID = checkEntry.ID
 
 	if checkEntry.UpdatedAt.After(secret.UpdatedAt) {
 		return ErrOldData
@@ -116,6 +120,8 @@ func (dbStorage DBStorage) PutCreditCard(card service.CreditCard, ctx context.Co
 		}
 	}
 
+	card.ID = checkEntry.ID
+
 	if checkEntry.UpdatedAt.After(card.UpdatedAt) {
 		return ErrOldData
 	}
@@ -142,6 +148,8 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 			return ErrAlreadyExists
 		}
 	}
+
+	binary.ID = checkEntry.ID
 
 	if checkEntry.UpdatedAt.After(binary.UpdatedAt) {
 		return ErrOldData
@@ -199,7 +207,7 @@ func (dbStorage DBStorage) BatchGetCreditCards(login string, ctx context.Context
 func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) ([]service.BinaryData, error) {
 	var binaryList []service.BinaryData
 
-	err := dbStorage.db.WithContext(ctx).Table("binaryData").Select("id, description, updated_at").
+	err := dbStorage.db.WithContext(ctx).Table("binary_data").Select("id, description, updated_at").
 		Where("login  = 	?", login).Find(&binaryList).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -225,8 +233,8 @@ func (dbStorage DBStorage) GetBinary(binary service.BinaryData, ctx context.Cont
 
 func (dbStorage DBStorage) DeleteAll() {
 	dbStorage.db.Exec("DELETE FROM users")
-	dbStorage.db.Exec("DELETE FROM logoPass")
-	dbStorage.db.Exec("DELETE FROM textData")
-	dbStorage.db.Exec("DELETE FROM creditCard")
-	dbStorage.db.Exec("DELETE FROM binaryData")
+	dbStorage.db.Exec("DELETE FROM logo_pass")
+	dbStorage.db.Exec("DELETE FROM text_data")
+	dbStorage.db.Exec("DELETE FROM credit_card")
+	dbStorage.db.Exec("DELETE FROM binary_data")
 }

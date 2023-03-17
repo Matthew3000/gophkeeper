@@ -315,16 +315,20 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 			return err
 		}
 
-		for _, existingLogoPass := range listLogoPasses {
+		newEntry := true
+		for i, existingLogoPass := range listLogoPasses {
 			if existingLogoPass.Description == logoPass.Description {
+				newEntry = false
 				if logoPass.Overwrite {
-					existingLogoPass = logoPass
+					listLogoPasses[i] = logoPass
+					break
 				} else {
 					return ErrAlreadyExists
 				}
-			} else {
-				listLogoPasses = append(listLogoPasses, logoPass)
 			}
+		}
+		if newEntry {
+			listLogoPasses = append(listLogoPasses, logoPass)
 		}
 	} else {
 		listLogoPasses = append(listLogoPasses, logoPass)
@@ -365,16 +369,20 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 			return err
 		}
 
-		for _, existingText := range listTexts {
+		newEntry := true
+		for i, existingText := range listTexts {
 			if existingText.Description == text.Description {
+				newEntry = false
 				if text.Overwrite {
-					existingText = text
+					listTexts[i] = text
+					break
 				} else {
 					return ErrAlreadyExists
 				}
-			} else {
-				listTexts = append(listTexts, text)
 			}
+		}
+		if newEntry {
+			listTexts = append(listTexts, text)
 		}
 	} else {
 		listTexts = append(listTexts, text)
@@ -415,16 +423,20 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 			return err
 		}
 
-		for _, existingCreditCard := range listCreditCards {
-			if existingCreditCard.Number == creditCard.Number {
+		newEntry := true
+		for i, existingCard := range listCreditCards {
+			if existingCard.Number == creditCard.Number {
+				newEntry = false
 				if creditCard.Overwrite {
-					existingCreditCard = creditCard
+					listCreditCards[i] = creditCard
+					break
 				} else {
 					return ErrAlreadyExists
 				}
-			} else {
-				listCreditCards = append(listCreditCards, creditCard)
 			}
+		}
+		if newEntry {
+			listCreditCards = append(listCreditCards, creditCard)
 		}
 	} else {
 		listCreditCards = append(listCreditCards, creditCard)
@@ -465,16 +477,20 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 			return err
 		}
 
-		for _, existingBinary := range binaryList {
+		newEntry := true
+		for i, existingBinary := range binaryList {
 			if existingBinary.Description == binary.Description {
+				newEntry = false
 				if binary.Overwrite {
-					existingBinary = binary
+					binaryList[i] = binary
+					break
 				} else {
 					return ErrAlreadyExists
 				}
-			} else {
-				binaryList = append(binaryList, binary)
 			}
+		}
+		if newEntry {
+			binaryList = append(binaryList, binary)
 		}
 	} else {
 		binaryList = append(binaryList, binary)

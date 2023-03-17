@@ -35,7 +35,7 @@ func main() {
 	flag.StringVar(&cfg.OutputFolder, "o", cfg.OutputFolder, "Output folder for files")
 	flag.Parse()
 
-	fmt.Print("Welcome to Gophkeeper")
+	fmt.Println("Welcome to Gophkeeper")
 	printBuildData()
 
 	var api = client.NewApi(cfg.ServerAddress)

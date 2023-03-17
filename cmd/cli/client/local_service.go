@@ -23,10 +23,10 @@ type Service interface {
 	ShowTexts() error
 	ShowCreditCards() error
 	ShowBinaryList() error
-	UploadLogoPass(logoPass service.LogoPass) error
-	UploadText(text service.TextData) error
-	UploadCreditCard(creditCard service.CreditCard) error
-	UploadBinary(binary service.BinaryData) error
+	PutLogoPass(logoPass service.LogoPass) error
+	PutText(text service.TextData) error
+	PutCreditCard(creditCard service.CreditCard) error
+	PutBinary(binary service.BinaryData) error
 	DownloadBinary(binary service.BinaryData) error
 }
 
@@ -101,25 +101,25 @@ initialActionChoice:
 	case "2":
 		var newLogoPass service.LogoPass
 		newLogoPass.Overwrite = false
-		err = svc.UploadLogoPass(newLogoPass)
+		err = svc.PutLogoPass(newLogoPass)
 	case "3":
 		err = svc.ShowTexts()
 	case "4":
 		var newText service.TextData
 		newText.Overwrite = false
-		err = svc.UploadText(newText)
+		err = svc.PutText(newText)
 	case "5":
 		err = svc.ShowCreditCards()
 	case "6":
 		var newCreditCard service.CreditCard
 		newCreditCard.Overwrite = false
-		err = svc.UploadCreditCard(newCreditCard)
+		err = svc.PutCreditCard(newCreditCard)
 	case "7":
 		err = svc.ShowBinaryList()
 	case "8":
 		var newBinary service.BinaryData
 		newBinary.Overwrite = false
-		err = svc.UploadBinary(newBinary)
+		err = svc.PutBinary(newBinary)
 	default:
 		fmt.Println("Houston we got a problem ")
 		goto initialActionChoice
@@ -139,8 +139,8 @@ func (svc *LocalService) Auth(login, password string) error {
 		return err
 	}
 	svc.key = password
-	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
-	err = svc.storage.UpdatePath(fmt.Sprintf("_%s/", login))
+	svc.config.OutputFolder += fmt.Sprintf("/_%s/", login)
+	err = svc.storage.UpdatePath(fmt.Sprintf("/_%s/", login))
 	if err != nil {
 		return err
 	}
@@ -167,8 +167,8 @@ func (svc *LocalService) Register(login, password string) error {
 		return err
 	}
 	svc.key = password
-	svc.config.OutputFolder += fmt.Sprintf("_%s/", login)
-	err = svc.storage.UpdatePath(fmt.Sprintf("_%s/", login))
+	svc.config.OutputFolder += fmt.Sprintf("/_%s/", login)
+	err = svc.storage.UpdatePath(fmt.Sprintf("/_%s/", login))
 	if err != nil {
 		return err
 	}
@@ -179,61 +179,63 @@ func (svc *LocalService) Register(login, password string) error {
 func (svc *LocalService) UpdateAll() error {
 	listLogoPasses, err := svc.api.GetLogoPasses()
 	if err != nil {
-		return err
+		return fmt.Errorf("get logopass: %w", err)
 	}
-	listTexts, err := svc.api.GetTexts()
-	if err != nil {
-		return err
-	}
-	listCreditCards, err := svc.api.GetCreditCards()
-	if err != nil {
-		return err
-	}
-	binaryList, err := svc.api.GetBinaryList()
-	if err != nil {
-		return err
-	}
-
 	updLogoPasses, err := svc.storage.StoreLogoPasses(listLogoPasses)
 	if err != nil {
-		return err
+		return fmt.Errorf("store logopass: %w", err)
+	}
+	for _, logoPass := range updLogoPasses {
+		err := svc.api.UploadLogoPass(logoPass)
+		if err != nil {
+			return err
+		}
+	}
+
+	listTexts, err := svc.api.GetTexts()
+	if err != nil {
+		return fmt.Errorf("get texts: %w", err)
 	}
 	updTexts, err := svc.storage.StoreTexts(listTexts)
 	if err != nil {
-		return err
+		return fmt.Errorf("store cards: %w", err)
+	}
+	for _, text := range updTexts {
+		err := svc.api.UploadText(text)
+		if err != nil {
+			return err
+		}
+	}
+
+	listCreditCards, err := svc.api.GetCreditCards()
+	if err != nil {
+		return fmt.Errorf("get cards: %w", err)
 	}
 	updCreditCards, err := svc.storage.StoreCreditCards(listCreditCards)
 	if err != nil {
-		return err
+		return fmt.Errorf("store texts: %w", err)
+	}
+	for _, card := range updCreditCards {
+		err := svc.api.UploadCreditCard(card)
+		if err != nil {
+			return err
+		}
+	}
+
+	binaryList, err := svc.api.GetBinaryList()
+	if err != nil {
+		return fmt.Errorf("get binarylist: %w", err)
 	}
 	err = svc.storage.StoreBinaries(binaryList)
 	if err != nil {
-		return err
-	}
-
-	for _, logoPass := range updLogoPasses {
-		err := svc.api.PutLogoPass(logoPass)
-		if err != nil {
-			return err
-		}
-	}
-	for _, text := range updTexts {
-		err := svc.api.PutText(text)
-		if err != nil {
-			return err
-		}
-	}
-	for _, card := range updCreditCards {
-		err := svc.api.PutCreditCard(card)
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("store binarylist: %w", err)
 	}
 
 	return nil
 }
 
 func (svc *LocalService) ShowLogoPasses() error {
+updateLogoPass:
 	listLogoPasses, err := svc.storage.GetLogoPasses()
 	if err != nil {
 		return err
@@ -260,7 +262,6 @@ func (svc *LocalService) ShowLogoPasses() error {
 
 	table.Render()
 
-updateLogoPass:
 	fmt.Print("If you want to update any pair enter it's ID\n" +
 		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
@@ -292,7 +293,7 @@ updateLogoPass:
 			fmt.Println("There is no such ID, try again")
 			goto updateLogoPass
 		}
-		err = svc.UploadLogoPass(updLogoPass)
+		err = svc.PutLogoPass(updLogoPass)
 		if err != nil {
 			fmt.Println(err)
 			goto updateLogoPass
@@ -301,7 +302,7 @@ updateLogoPass:
 	return nil
 }
 
-func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
+func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Please, enter login")
@@ -343,7 +344,7 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.PutLogoPass(logoPass)
+	err = svc.api.UploadLogoPass(logoPass)
 	if err != nil {
 		return err
 	}
@@ -352,6 +353,7 @@ func (svc *LocalService) UploadLogoPass(logoPass service.LogoPass) error {
 }
 
 func (svc *LocalService) ShowTexts() error {
+updateText:
 	listTexts, err := svc.storage.GetTexts()
 	if err != nil {
 		return err
@@ -372,7 +374,6 @@ func (svc *LocalService) ShowTexts() error {
 
 	table.Render()
 
-updateText:
 	fmt.Print("If you want to update any text enter it's ID\n" +
 		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
@@ -405,7 +406,7 @@ updateText:
 			fmt.Println("There is no such ID, try again")
 			goto updateText
 		}
-		err = svc.UploadText(updText)
+		err = svc.PutText(updText)
 		if err != nil {
 			fmt.Println(err)
 			goto updateText
@@ -415,7 +416,7 @@ updateText:
 	return nil
 }
 
-func (svc *LocalService) UploadText(text service.TextData) error {
+func (svc *LocalService) PutText(text service.TextData) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Please, enter text")
@@ -446,7 +447,7 @@ func (svc *LocalService) UploadText(text service.TextData) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.PutText(text)
+	err = svc.api.UploadText(text)
 	if err != nil {
 		return err
 	}
@@ -455,6 +456,7 @@ func (svc *LocalService) UploadText(text service.TextData) error {
 }
 
 func (svc *LocalService) ShowCreditCards() error {
+updateCard:
 	listCreditCards, err := svc.storage.GetCreditCards()
 	if err != nil {
 		return err
@@ -485,7 +487,6 @@ func (svc *LocalService) ShowCreditCards() error {
 
 	table.Render()
 
-updateCard:
 	fmt.Print("If you want to update any credit card info enter it's ID\n" +
 		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
@@ -517,7 +518,7 @@ updateCard:
 			fmt.Println("There is no such ID, try again")
 			goto updateCard
 		}
-		err = svc.UploadCreditCard(updCreditCard)
+		err = svc.PutCreditCard(updCreditCard)
 		if err != nil {
 			fmt.Println(err)
 			goto updateCard
@@ -526,7 +527,7 @@ updateCard:
 	return nil
 }
 
-func (svc *LocalService) UploadCreditCard(creditCard service.CreditCard) error {
+func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Please, enter card holder name")
@@ -585,7 +586,7 @@ func (svc *LocalService) UploadCreditCard(creditCard service.CreditCard) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.PutCreditCard(creditCard)
+	err = svc.api.UploadCreditCard(creditCard)
 	if err != nil {
 		return err
 	}
@@ -594,6 +595,7 @@ func (svc *LocalService) UploadCreditCard(creditCard service.CreditCard) error {
 }
 
 func (svc *LocalService) ShowBinaryList() error {
+updateBinary:
 	binaryList, err := svc.storage.GetBinaryList()
 	if err != nil {
 		return err
@@ -609,7 +611,6 @@ func (svc *LocalService) ShowBinaryList() error {
 
 	table.Render()
 
-updateBinary:
 	fmt.Print("If you want to update or download any binary enter it's ID\n" +
 		"otherwise type exit\n")
 	reader := bufio.NewReader(os.Stdin)
@@ -655,7 +656,7 @@ updateBinary:
 			return nil
 		case "1":
 			updBinary.Overwrite = true
-			err = svc.UploadBinary(updBinary)
+			err = svc.PutBinary(updBinary)
 			if err != nil {
 				fmt.Println(err)
 				goto updateBinary
@@ -672,7 +673,7 @@ updateBinary:
 	return nil
 }
 
-func (svc *LocalService) UploadBinary(binary service.BinaryData) error {
+func (svc *LocalService) PutBinary(binary service.BinaryData) error {
 	reader := bufio.NewReader(os.Stdin)
 	var err error
 	if binary.Description == "" {
@@ -703,7 +704,7 @@ func (svc *LocalService) UploadBinary(binary service.BinaryData) error {
 	}
 	binary.UpdatedAt = time.Now()
 
-	err = svc.api.PutBinary(binary)
+	err = svc.api.UploadBinary(binary)
 	if err != nil {
 		return err
 	}

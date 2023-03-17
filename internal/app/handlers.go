@@ -280,6 +280,7 @@ func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	fmt.Println(binaryList)
 	render.JSON(w, r, binaryList)
 }
 
