@@ -1,11 +1,14 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/caarlos0/env/v6"
 	"gophkeeper/cmd/cli/client"
 	"log"
+	"net"
+	"time"
 )
 
 var (
@@ -45,20 +48,19 @@ func main() {
 	}
 	var service = client.NewService(cfg, api, storage)
 
-	/*	tickerUpdate := time.NewTicker(client.UpdateDataTimer)
-		<-tickerUpdate.C
-		go func() {
-			for range tickerUpdate.C {
-				log.Printf("Updating data from server")
-				err := service.UpdateAll()
-				if err != nil {
-					if errors.Is(err, &net.OpError{}) {
-						fmt.Println("Update failed due to poor internet connection, continuing offline")
-					}
-					log.Printf("update data from server: %s", err)
+	tickerUpdate := time.NewTicker(client.UpdateDataTimer)
+	go func() {
+		for range tickerUpdate.C {
+			log.Printf("Updating data from server")
+			err := service.UpdateAll()
+			if err != nil {
+				if errors.Is(err, &net.OpError{}) {
+					fmt.Println("Update failed due to poor internet connection, continuing offline")
 				}
+				log.Printf("update data from server: %s", err)
 			}
-		}()*/
+		}
+	}()
 
 	err = service.StartCommunicate()
 	if err != nil {

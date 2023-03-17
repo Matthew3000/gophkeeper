@@ -125,7 +125,7 @@ initialActionChoice:
 		goto initialActionChoice
 	}
 	if err != nil {
-		fmt.Print(err)
+		fmt.Println(err)
 	}
 	goto initialActionChoice
 }
@@ -139,12 +139,13 @@ func (svc *LocalService) Auth(login, password string) error {
 		return err
 	}
 	svc.key = password
-	svc.config.OutputFolder += fmt.Sprintf("/_%s/", login)
-	err = svc.storage.UpdatePath(fmt.Sprintf("/_%s/", login))
+
+	err = svc.storage.UpdatePath(fmt.Sprintf("%s/%s/", svc.config.OutputFolder, login))
 	if err != nil {
 		return err
 	}
 	fmt.Println("Authorization successful, updating, please wait")
+	fmt.Printf("Output folder is %s/%s/\n", svc.config.OutputFolder, login)
 
 	err = svc.UpdateAll()
 	if err != nil {
@@ -167,16 +168,21 @@ func (svc *LocalService) Register(login, password string) error {
 		return err
 	}
 	svc.key = password
-	svc.config.OutputFolder += fmt.Sprintf("/_%s/", login)
-	err = svc.storage.UpdatePath(fmt.Sprintf("/_%s/", login))
+	err = svc.storage.UpdatePath(fmt.Sprintf("%s/%s/", svc.config.OutputFolder, login))
 	if err != nil {
 		return err
 	}
 	fmt.Println("Registration successful, please proceed")
+	fmt.Printf("Output folder is %s/%s/\n", svc.config.OutputFolder, login)
 	return nil
 }
 
 func (svc *LocalService) UpdateAll() error {
+	//means no auth yet, so no update required
+	if svc.key == "" {
+		return nil
+	}
+
 	listLogoPasses, err := svc.api.GetLogoPasses()
 	if err != nil {
 		return fmt.Errorf("get logopass: %w", err)

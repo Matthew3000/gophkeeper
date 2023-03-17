@@ -38,7 +38,7 @@ func NewStorage(path string) (*FileStorage, error) {
 }
 
 func (storage *FileStorage) UpdatePath(path string) error {
-	storage.outputPath += path
+	storage.outputPath = path
 	err := os.MkdirAll(storage.outputPath, os.ModePerm)
 	if err != nil {
 		return err
@@ -70,17 +70,18 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 			return updLogoPasses, err
 		}
 	}
-	for _, serverLogoPass := range serverLogoPasses {
+	for i, serverLogoPass := range serverLogoPasses {
 		newEntry := true
 		for _, storedLogoPass := range storedLogoPasses {
 			if serverLogoPass.Description == storedLogoPass.Description {
 				if serverLogoPass.UpdatedAt.After(storedLogoPass.UpdatedAt) {
-					storedLogoPass = serverLogoPass
-					newEntry = false
+					storedLogoPasses[i] = serverLogoPass
 				} else {
 					storedLogoPass.Overwrite = true
 					updLogoPasses = append(updLogoPasses, storedLogoPass)
 				}
+				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -92,6 +93,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 		for _, serverLogoPass := range serverLogoPasses {
 			if serverLogoPass.Description == storedLogoPass.Description {
 				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -99,13 +101,15 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 		}
 	}
 
-	jsonBytes, err := json.Marshal(storedLogoPasses)
-	if err != nil {
-		return updLogoPasses, err
-	}
-	err = os.WriteFile(storage.outputPath+LogopassFile, jsonBytes, 0644)
-	if err != nil {
-		return updLogoPasses, err
+	if len(storedLogoPasses) != 0 {
+		jsonBytes, err := json.Marshal(storedLogoPasses)
+		if err != nil {
+			return updLogoPasses, err
+		}
+		err = os.WriteFile(storage.outputPath+LogopassFile, jsonBytes, 0644)
+		if err != nil {
+			return updLogoPasses, err
+		}
 	}
 	mutex.Unlock()
 
@@ -138,15 +142,16 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 	}
 	for _, serverText := range serverTexts {
 		newEntry := true
-		for _, storedText := range storedTexts {
+		for i, storedText := range storedTexts {
 			if serverText.Description == storedText.Description {
 				if serverText.UpdatedAt.After(storedText.UpdatedAt) {
-					storedText = serverText
-					newEntry = false
+					storedTexts[i] = serverText
 				} else {
 					storedText.Overwrite = true
 					updTexts = append(updTexts, storedText)
 				}
+				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -158,6 +163,7 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 		for _, serverText := range serverTexts {
 			if serverText.Description == storedText.Description {
 				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -165,13 +171,15 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 		}
 	}
 
-	jsonBytes, err := json.Marshal(storedTexts)
-	if err != nil {
-		return updTexts, err
-	}
-	err = os.WriteFile(storage.outputPath+TextFile, jsonBytes, 0644)
-	if err != nil {
-		return updTexts, err
+	if len(storedTexts) != 0 {
+		jsonBytes, err := json.Marshal(storedTexts)
+		if err != nil {
+			return updTexts, err
+		}
+		err = os.WriteFile(storage.outputPath+TextFile, jsonBytes, 0644)
+		if err != nil {
+			return updTexts, err
+		}
 	}
 	mutex.Unlock()
 
@@ -201,17 +209,18 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 			return updCreditCards, err
 		}
 	}
-	for _, serverCard := range serverCreditCards {
+	for i, serverCard := range serverCreditCards {
 		newEntry := true
 		for _, storedCard := range storedCreditCards {
 			if serverCard.Number == storedCard.Number {
 				if serverCard.UpdatedAt.After(storedCard.UpdatedAt) {
-					storedCard = serverCard
-					newEntry = false
+					storedCreditCards[i] = serverCard
 				} else {
 					storedCard.Overwrite = true
 					updCreditCards = append(updCreditCards, storedCard)
 				}
+				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -223,6 +232,7 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 		for _, serverCard := range serverCreditCards {
 			if serverCard.Number == storedCard.Number {
 				newEntry = false
+				break
 			}
 		}
 		if newEntry {
@@ -230,13 +240,15 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 		}
 	}
 
-	jsonBytes, err := json.Marshal(storedCreditCards)
-	if err != nil {
-		return updCreditCards, err
-	}
-	err = os.WriteFile(storage.outputPath+CreditCardFile, jsonBytes, 0644)
-	if err != nil {
-		return updCreditCards, err
+	if len(storedCreditCards) != 0 {
+		jsonBytes, err := json.Marshal(storedCreditCards)
+		if err != nil {
+			return updCreditCards, err
+		}
+		err = os.WriteFile(storage.outputPath+CreditCardFile, jsonBytes, 0644)
+		if err != nil {
+			return updCreditCards, err
+		}
 	}
 	mutex.Unlock()
 
@@ -265,13 +277,14 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 			return err
 		}
 	}
-	for _, serverBinary := range serverBinaries {
+	for i, serverBinary := range serverBinaries {
 		newEntry := true
 		for _, storedBinary := range storedBinaries {
 			if serverBinary.Description == storedBinary.Description {
 				if serverBinary.UpdatedAt.After(storedBinary.UpdatedAt) {
-					storedBinary = serverBinary
+					storedBinaries[i] = serverBinary
 					newEntry = false
+					break
 				}
 			}
 		}
@@ -280,13 +293,15 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 		}
 	}
 
-	jsonBytes, err := json.Marshal(storedBinaries)
-	if err != nil {
-		return err
-	}
-	err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
-	if err != nil {
-		return err
+	if len(storedBinaries) != 0 {
+		jsonBytes, err := json.Marshal(storedBinaries)
+		if err != nil {
+			return err
+		}
+		err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
+		if err != nil {
+			return err
+		}
 	}
 	mutex.Unlock()
 
@@ -316,6 +331,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 		}
 
 		newEntry := true
+		var newID uint = 1
 		for i, existingLogoPass := range listLogoPasses {
 			if existingLogoPass.Description == logoPass.Description {
 				newEntry = false
@@ -326,11 +342,14 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 					return ErrAlreadyExists
 				}
 			}
+			newID = existingLogoPass.ID + 1
 		}
 		if newEntry {
+			logoPass.ID = newID
 			listLogoPasses = append(listLogoPasses, logoPass)
 		}
 	} else {
+		logoPass.ID = 1
 		listLogoPasses = append(listLogoPasses, logoPass)
 	}
 
@@ -370,6 +389,7 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 		}
 
 		newEntry := true
+		var newID uint = 1
 		for i, existingText := range listTexts {
 			if existingText.Description == text.Description {
 				newEntry = false
@@ -380,11 +400,14 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 					return ErrAlreadyExists
 				}
 			}
+			newID = existingText.ID + 1
 		}
 		if newEntry {
+			text.ID = newID
 			listTexts = append(listTexts, text)
 		}
 	} else {
+		text.ID = 1
 		listTexts = append(listTexts, text)
 	}
 
@@ -424,6 +447,7 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 		}
 
 		newEntry := true
+		var newID uint = 1
 		for i, existingCard := range listCreditCards {
 			if existingCard.Number == creditCard.Number {
 				newEntry = false
@@ -434,11 +458,14 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 					return ErrAlreadyExists
 				}
 			}
+			newID = existingCard.ID + 1
 		}
 		if newEntry {
+			creditCard.ID = newID
 			listCreditCards = append(listCreditCards, creditCard)
 		}
 	} else {
+		creditCard.ID = 1
 		listCreditCards = append(listCreditCards, creditCard)
 	}
 
@@ -478,6 +505,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 		}
 
 		newEntry := true
+		var newID uint = 1
 		for i, existingBinary := range binaryList {
 			if existingBinary.Description == binary.Description {
 				newEntry = false
@@ -488,11 +516,14 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 					return ErrAlreadyExists
 				}
 			}
+			newID = existingBinary.ID + 1
 		}
 		if newEntry {
+			binary.ID = newID
 			binaryList = append(binaryList, binary)
 		}
 	} else {
+		binary.ID = 1
 		binaryList = append(binaryList, binary)
 	}
 
