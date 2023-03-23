@@ -44,7 +44,7 @@ func (app *App) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.RegisterUser(user, r.Context())
+	err = app.UserStorage.RegisterUser(user, r.Context())
 	if err != nil {
 		log.Printf("register err: %s for user: %s, password: %s", err, user.Login, user.Password)
 		if errors.Is(err, storage.ErrUserExists) {
@@ -58,7 +58,7 @@ func (app *App) Register(w http.ResponseWriter, r *http.Request) {
 	var authDetails service.Authentication
 	authDetails.Login = user.Login
 	authDetails.Password = user.Password
-	err = app.userStorage.CheckUserAuth(authDetails, r.Context())
+	err = app.UserStorage.CheckUserAuth(authDetails, r.Context())
 	if err != nil {
 		log.Printf("register then auth err: %s for user: %s, password: %s", err, authDetails.Login, authDetails.Password)
 		if errors.Is(err, storage.ErrInvalidCredentials) {
@@ -85,7 +85,7 @@ func (app *App) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.CheckUserAuth(authDetails, r.Context())
+	err = app.UserStorage.CheckUserAuth(authDetails, r.Context())
 	if err != nil {
 		log.Printf("auth err: %s for user: %s, password: %s", err, authDetails.Login, authDetails.Password)
 		if errors.Is(err, storage.ErrInvalidCredentials) {
@@ -116,15 +116,16 @@ func (app *App) UploadLogoPass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.PutLogoPass(logoPass, r.Context())
+	err = app.UserStorage.PutLogoPass(logoPass, r.Context())
 	if err != nil {
-		if errors.Is(err, storage.ErrOldData) {
-			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+		if errors.Is(err, storage.ErrOldData) || errors.Is(err, storage.ErrAlreadyExists) {
+			http.Error(w, fmt.Sprint(err), http.StatusConflict)
 			return
 		}
 		log.Printf("put logopass pair: save to db: %s for user: %s", err, logoPass.Login)
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 		return
+
 	}
 	w.WriteHeader(http.StatusCreated)
 }
@@ -135,7 +136,7 @@ func (app *App) BatchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) 
 	session, _ := app.cookieStorage.Get(r, "session.id")
 	logoPass.Login = session.Values["login"].(string)
 
-	listLogoPasses, err := app.userStorage.BatchGetLogoPasses(logoPass.Login, r.Context())
+	listLogoPasses, err := app.UserStorage.BatchGetLogoPasses(logoPass.Login, r.Context())
 	if err != nil {
 		log.Printf("get logpass pairs: %s for user: %s", err, logoPass.Login)
 		if errors.Is(err, storage.ErrEmpty) {
@@ -161,10 +162,10 @@ func (app *App) UploadText(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.PutText(text, r.Context())
+	err = app.UserStorage.PutText(text, r.Context())
 	if err != nil {
-		if errors.Is(err, storage.ErrOldData) {
-			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+		if errors.Is(err, storage.ErrOldData) || errors.Is(err, storage.ErrAlreadyExists) {
+			http.Error(w, fmt.Sprint(err), http.StatusConflict)
 			return
 		}
 		log.Printf("put secret text: save to db: %s for user: %s", err, text.Login)
@@ -180,7 +181,7 @@ func (app *App) BatchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.cookieStorage.Get(r, "session.id")
 	text.Login = session.Values["login"].(string)
 
-	listTexts, err := app.userStorage.BatchGetTexts(text.Login, r.Context())
+	listTexts, err := app.UserStorage.BatchGetTexts(text.Login, r.Context())
 	if err != nil {
 		log.Printf("get secrets: %s for user: %s", err, text.Login)
 		if errors.Is(err, storage.ErrEmpty) {
@@ -206,10 +207,10 @@ func (app *App) UploadCreditCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.PutCreditCard(card, r.Context())
+	err = app.UserStorage.PutCreditCard(card, r.Context())
 	if err != nil {
-		if errors.Is(err, storage.ErrOldData) {
-			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+		if errors.Is(err, storage.ErrOldData) || errors.Is(err, storage.ErrAlreadyExists) {
+			http.Error(w, fmt.Sprint(err), http.StatusConflict)
 			return
 		}
 		log.Printf("put credit card: save to db: %s for user: %s", err, card.Login)
@@ -225,7 +226,7 @@ func (app *App) BatchDownloadCreditCards(w http.ResponseWriter, r *http.Request)
 	session, _ := app.cookieStorage.Get(r, "session.id")
 	card.Login = session.Values["login"].(string)
 
-	listCards, err := app.userStorage.BatchGetCreditCards(card.Login, r.Context())
+	listCards, err := app.UserStorage.BatchGetCreditCards(card.Login, r.Context())
 	if err != nil {
 		log.Printf("get logpass pairs: %s for user: %s", err, card.Login)
 		if errors.Is(err, storage.ErrEmpty) {
@@ -251,11 +252,11 @@ func (app *App) UploadBinary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.userStorage.PutBinary(binary, r.Context())
+	err = app.UserStorage.PutBinary(binary, r.Context())
 	if err != nil {
 		log.Printf("put credit card: save to db: %s for user: %s", err, binary.Login)
-		if errors.Is(err, storage.ErrOldData) {
-			http.Error(w, fmt.Sprint(storage.ErrOldData), http.StatusConflict)
+		if errors.Is(err, storage.ErrOldData) || errors.Is(err, storage.ErrAlreadyExists) {
+			http.Error(w, fmt.Sprint(err), http.StatusConflict)
 			return
 		}
 		http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
@@ -270,7 +271,7 @@ func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
 	session, _ := app.cookieStorage.Get(r, "session.id")
 	binary.Login = session.Values["login"].(string)
 
-	binaryList, err := app.userStorage.GetBinaryList(binary.Login, r.Context())
+	binaryList, err := app.UserStorage.GetBinaryList(binary.Login, r.Context())
 	if err != nil {
 		log.Printf("get binary list: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
@@ -297,11 +298,11 @@ func (app *App) DownloadBinary(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	binary, err = app.userStorage.GetBinary(binary, r.Context())
+	binary, err = app.UserStorage.GetBinary(binary, r.Context())
 	if err != nil {
 		log.Printf("get binary: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNotFound)
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return

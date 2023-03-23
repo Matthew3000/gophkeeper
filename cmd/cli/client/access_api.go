@@ -55,6 +55,9 @@ func (api *ServerApi) Register(user service.User) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrUserExists
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 	return nil
@@ -81,6 +84,9 @@ func (api *ServerApi) Login(user service.User) error {
 	}
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusUnauthorized {
+			return ErrInvalidCredentials
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 	return nil
@@ -186,6 +192,9 @@ func (api *ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, 
 		return binary, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return binary, ErrEmpty
+	}
 
 	err = json.NewDecoder(resp.Body).Decode(&binary)
 	if err != nil {
@@ -212,6 +221,9 @@ func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrAlreadyExists
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
@@ -237,6 +249,9 @@ func (api *ServerApi) UploadText(text service.TextData) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrAlreadyExists
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
@@ -262,6 +277,9 @@ func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrAlreadyExists
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
@@ -287,6 +305,9 @@ func (api *ServerApi) UploadBinary(binary service.BinaryData) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrAlreadyExists
+		}
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 

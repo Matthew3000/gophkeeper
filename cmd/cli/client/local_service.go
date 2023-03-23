@@ -32,13 +32,13 @@ type Service interface {
 
 type LocalService struct {
 	config  Config
-	api     Api
+	Api     Api
 	storage Storage
 	key     string
 }
 
 func NewService(config Config, api Api, storage Storage) *LocalService {
-	return &LocalService{config: config, api: api, storage: storage}
+	return &LocalService{config: config, Api: api, storage: storage}
 }
 
 func (svc *LocalService) StartCommunicate() error {
@@ -134,7 +134,7 @@ func (svc *LocalService) Auth(login, password string) error {
 	var user service.User
 	user.Login = login
 	user.Password = password
-	err := svc.api.Login(user)
+	err := svc.Api.Login(user)
 	if err != nil {
 		return err
 	}
@@ -163,7 +163,7 @@ func (svc *LocalService) Register(login, password string) error {
 	var user service.User
 	user.Login = login
 	user.Password = password
-	err := svc.api.Register(user)
+	err := svc.Api.Register(user)
 	if err != nil {
 		return err
 	}
@@ -183,7 +183,7 @@ func (svc *LocalService) UpdateAll() error {
 		return nil
 	}
 
-	listLogoPasses, err := svc.api.GetLogoPasses()
+	listLogoPasses, err := svc.Api.GetLogoPasses()
 	if err != nil {
 		return fmt.Errorf("get logopass: %w", err)
 	}
@@ -192,13 +192,13 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store logopass: %w", err)
 	}
 	for _, logoPass := range updLogoPasses {
-		err := svc.api.UploadLogoPass(logoPass)
+		err := svc.Api.UploadLogoPass(logoPass)
 		if err != nil {
 			return err
 		}
 	}
 
-	listTexts, err := svc.api.GetTexts()
+	listTexts, err := svc.Api.GetTexts()
 	if err != nil {
 		return fmt.Errorf("get texts: %w", err)
 	}
@@ -207,13 +207,13 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store cards: %w", err)
 	}
 	for _, text := range updTexts {
-		err := svc.api.UploadText(text)
+		err := svc.Api.UploadText(text)
 		if err != nil {
 			return err
 		}
 	}
 
-	listCreditCards, err := svc.api.GetCreditCards()
+	listCreditCards, err := svc.Api.GetCreditCards()
 	if err != nil {
 		return fmt.Errorf("get cards: %w", err)
 	}
@@ -222,13 +222,13 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store texts: %w", err)
 	}
 	for _, card := range updCreditCards {
-		err := svc.api.UploadCreditCard(card)
+		err := svc.Api.UploadCreditCard(card)
 		if err != nil {
 			return err
 		}
 	}
 
-	binaryList, err := svc.api.GetBinaryList()
+	binaryList, err := svc.Api.GetBinaryList()
 	if err != nil {
 		return fmt.Errorf("get binarylist: %w", err)
 	}
@@ -350,7 +350,7 @@ func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.UploadLogoPass(logoPass)
+	err = svc.Api.UploadLogoPass(logoPass)
 	if err != nil {
 		return err
 	}
@@ -453,7 +453,7 @@ func (svc *LocalService) PutText(text service.TextData) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.UploadText(text)
+	err = svc.Api.UploadText(text)
 	if err != nil {
 		return err
 	}
@@ -592,7 +592,7 @@ func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
 		return err
 	}
 	fmt.Println("Successfully saved to local storage")
-	err = svc.api.UploadCreditCard(creditCard)
+	err = svc.Api.UploadCreditCard(creditCard)
 	if err != nil {
 		return err
 	}
@@ -710,7 +710,7 @@ func (svc *LocalService) PutBinary(binary service.BinaryData) error {
 	}
 	binary.UpdatedAt = time.Now()
 
-	err = svc.api.UploadBinary(binary)
+	err = svc.Api.UploadBinary(binary)
 	if err != nil {
 		return err
 	}
@@ -745,7 +745,7 @@ func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
 	}
 	name = strings.TrimRight(name, "\r\n")
 
-	binary, err = svc.api.GetBinary(binary)
+	binary, err = svc.Api.GetBinary(binary)
 	if err != nil {
 		return err
 	}

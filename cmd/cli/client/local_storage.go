@@ -49,7 +49,7 @@ func (storage *FileStorage) UpdatePath(path string) error {
 func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass) ([]service.LogoPass, error) {
 	var updLogoPasses []service.LogoPass
 
-	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updLogoPasses, err
 	}
@@ -106,7 +106,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 		if err != nil {
 			return updLogoPasses, err
 		}
-		err = os.WriteFile(storage.outputPath+LogopassFile, jsonBytes, 0644)
+		err = os.WriteFile(storage.outputPath+LogoPassFile, jsonBytes, 0644)
 		if err != nil {
 			return updLogoPasses, err
 		}
@@ -312,7 +312,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	var mutex sync.Mutex
 	mutex.Lock()
 
-	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -357,7 +357,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(storage.outputPath+LogopassFile, jsonBytes, 0644)
+	err = os.WriteFile(storage.outputPath+LogoPassFile, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -543,7 +543,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 func (storage *FileStorage) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
 
-	file, err := os.OpenFile(storage.outputPath+LogopassFile, os.O_RDONLY, 0644)
+	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return listLogoPasses, err
 	}
@@ -624,4 +624,12 @@ func (storage *FileStorage) GetBinaryList() ([]service.BinaryData, error) {
 		}
 	}
 	return BinaryList, nil
+}
+
+func (storage *FileStorage) ClearAll() error {
+	err := os.RemoveAll(storage.outputPath)
+	if err != nil {
+		return err
+	}
+	return nil
 }

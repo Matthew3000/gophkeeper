@@ -233,8 +233,8 @@ func (dbStorage DBStorage) GetBinary(binary service.BinaryData, ctx context.Cont
 
 func (dbStorage DBStorage) DeleteAll() {
 	dbStorage.db.Exec("DELETE FROM users")
-	dbStorage.db.Exec("DELETE FROM logo_pass")
+	dbStorage.db.Exec("DELETE FROM logo_passes")
 	dbStorage.db.Exec("DELETE FROM text_data")
-	dbStorage.db.Exec("DELETE FROM credit_card")
+	dbStorage.db.Exec("DELETE FROM credit_cards")
 	dbStorage.db.Exec("DELETE FROM binary_data")
 }

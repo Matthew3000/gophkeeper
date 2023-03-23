@@ -13,7 +13,7 @@ type Config struct {
 const DateTimeLayout = "02.01.2006 15:04:05"
 
 const (
-	LogopassFile    = "LogoPasses.json"
+	LogoPassFile    = "LogoPasses.json"
 	TextFile        = "TextData.json"
 	CreditCardFile  = "CreditCards.json"
 	BinaryListFile  = "BinaryList.json"
@@ -21,5 +21,8 @@ const (
 )
 
 var (
-	ErrAlreadyExists = errors.New("already exists")
+	ErrUserExists         = errors.New("user already exists")
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrAlreadyExists      = errors.New("already exists")
+	ErrEmpty              = errors.New("no data")
 )

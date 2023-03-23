@@ -12,7 +12,7 @@ import (
 
 type App struct {
 	config        config.Config
-	userStorage   storage.UserStorage
+	UserStorage   storage.UserStorage
 	cookieStorage sessions.CookieStore
 }
 
@@ -31,7 +31,7 @@ const (
 )
 
 func NewApp(cfg config.Config, userStorage storage.UserStorage, cookieStorage sessions.CookieStore) *App {
-	return &App{config: cfg, userStorage: userStorage, cookieStorage: cookieStorage}
+	return &App{config: cfg, UserStorage: userStorage, cookieStorage: cookieStorage}
 }
 
 func (app *App) Run() {
