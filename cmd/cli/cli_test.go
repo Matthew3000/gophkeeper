@@ -16,6 +16,9 @@ import (
 	"time"
 )
 
+// Чтобы запустить тест, необходимо поднять Postgres базу и написать url в serverCfg ниже
+// для запуска обоих тестов сразу использовать go test -p 1 ./.../
+
 func TestClient(t *testing.T) {
 	serverCfg := config.Config{
 		ServerAddress: "localhost:8080",
