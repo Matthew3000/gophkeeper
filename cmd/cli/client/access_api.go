@@ -227,7 +227,7 @@ func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
-	fmt.Println("login password pair has been succesfully updated")
+	fmt.Println("login password pair has been successfully updated")
 	return nil
 }
 
@@ -255,7 +255,7 @@ func (api *ServerApi) UploadText(text service.TextData) error {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
-	fmt.Println("login password pair has been succesfully updated")
+	fmt.Println("login password pair has been successfully updated")
 	return nil
 }
 
@@ -283,7 +283,7 @@ func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
-	fmt.Println("login password pair has been succesfully updated")
+	fmt.Println("login password pair has been successfully updated")
 	return nil
 }
 
@@ -311,6 +311,6 @@ func (api *ServerApi) UploadBinary(binary service.BinaryData) error {
 		return fmt.Errorf("server returned status code %d", resp.StatusCode)
 	}
 
-	fmt.Println("login password pair has been succesfully updated")
+	fmt.Println("login password pair has been successfully updated")
 	return nil
 }

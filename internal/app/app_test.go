@@ -2,6 +2,8 @@ package app
 
 import (
 	"encoding/json"
+	"flag"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-resty/resty/v2"
 	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/assert"
@@ -10,6 +12,7 @@ import (
 	"gophkeeper/internal/service"
 	"gophkeeper/internal/storage"
 	"gorm.io/gorm"
+	"log"
 	"net/http"
 	"testing"
 	"time"
@@ -19,10 +22,13 @@ import (
 // для запуска обоих тестов сразу использовать go test -p 1 ./.../
 
 func TestApp(t *testing.T) {
-	cfg := config.Config{
-		ServerAddress: "localhost:8080",
-		DatabaseDSN:   "postgres://matt:pvtjoker@localhost:5432/gophkeeper?sslmode=disable",
+	var cfg config.Config
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal(err)
 	}
+	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "File Storage Path")
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "Server address")
+	flag.Parse()
 
 	userStorage := storage.NewUserStorage(cfg.DatabaseDSN)
 	cookieStorage := sessions.NewCookieStore([]byte(service.SecretKey))

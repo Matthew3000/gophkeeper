@@ -11,8 +11,8 @@ type DBStorage struct {
 	db *gorm.DB
 }
 
-func NewUserStorage(DatabaseURL string) *DBStorage {
-	connection, err := gorm.Open(postgres.Open(DatabaseURL), &gorm.Config{})
+func NewUserStorage(databaseURL string) *DBStorage {
+	connection, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("database failed to open: %s", err)
 	}

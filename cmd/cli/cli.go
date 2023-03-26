@@ -52,7 +52,7 @@ func main() {
 	go func() {
 		for range tickerUpdate.C {
 			log.Printf("Updating data from server")
-			err := service.UpdateAll()
+			err = service.UpdateAll()
 			if err != nil {
 				if errors.Is(err, &net.OpError{}) {
 					fmt.Println("Update failed due to poor internet connection, continuing offline")

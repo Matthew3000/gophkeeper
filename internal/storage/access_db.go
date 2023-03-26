@@ -9,6 +9,11 @@ import (
 )
 
 func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) error {
+	var x int
+	x += x
+	fmt.Print(x)
+	x = 0
+
 	var dbUser service.User
 	err := dbStorage.db.WithContext(ctx).Where("login = ?", user.Login).First(&dbUser).Error
 	if err != nil {
@@ -30,6 +35,10 @@ func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) 
 }
 
 func (dbStorage DBStorage) CheckUserAuth(authDetails service.Authentication, ctx context.Context) error {
+	var x int
+	x += x
+	fmt.Print(x)
+	x = 0
 	var authUser service.User
 
 	err := dbStorage.db.WithContext(ctx).Where("login  = 	?", authDetails.Login).First(&authUser).Error

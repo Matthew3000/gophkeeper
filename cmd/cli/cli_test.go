@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/require"
 	"gophkeeper/cmd/cli/client"
@@ -16,24 +18,32 @@ import (
 	"time"
 )
 
-// Чтобы запустить тест, необходимо поднять Postgres базу и написать url в serverCfg ниже
+// Чтобы запустить тест, необходимо поднять Postgres базу и задать настройки через флаги
 // для запуска обоих тестов сразу использовать go test -p 1 ./.../
 
 func TestClient(t *testing.T) {
-	serverCfg := config.Config{
-		ServerAddress: "localhost:8080",
-		DatabaseDSN:   "postgres://matt:pvtjoker@localhost:5432/gophkeeper?sslmode=disable",
-	}
+	var serverCfg config.Config
 
+	if err := env.Parse(&serverCfg); err != nil {
+		log.Fatal(err)
+	}
+	flag.StringVar(&serverCfg.DatabaseDSN, "d", serverCfg.DatabaseDSN, "File Storage Path")
+	flag.StringVar(&serverCfg.ServerAddress, "a", serverCfg.ServerAddress, "Server address")
+
+	fmt.Println(serverCfg.DatabaseDSN)
 	userStorage := storage.NewUserStorage(serverCfg.DatabaseDSN)
 	cookieStorage := sessions.NewCookieStore([]byte(service.SecretKey))
 	var application = app.NewApp(serverCfg, userStorage, *cookieStorage)
 	go application.Run()
 
-	cfg := client.Config{
-		ServerAddress: "http://localhost:8080",
-		OutputFolder:  "C:/temp/gophkeeper",
+	var cfg client.Config
+
+	if err := env.Parse(&cfg); err != nil {
+		log.Fatal(err)
 	}
+	flag.StringVar(&cfg.OutputFolder, "o", cfg.OutputFolder, "Output folder for files")
+	cfg.ServerAddress = "http://" + serverCfg.ServerAddress
+	flag.Parse()
 
 	var api = client.NewApi(cfg.ServerAddress)
 	var clientStorage, err = client.NewStorage(cfg.OutputFolder)

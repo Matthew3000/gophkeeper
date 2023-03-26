@@ -31,6 +31,7 @@ func printBuildData() {
 
 func main() {
 	printBuildData()
+
 	var cfg config.Config
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatal(err)

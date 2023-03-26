@@ -178,7 +178,7 @@ func (svc *LocalService) Register(login, password string) error {
 }
 
 func (svc *LocalService) UpdateAll() error {
-	//means no auth yet, so no update required
+	// means no auth yet, so no update required
 	if svc.key == "" {
 		return nil
 	}
@@ -192,7 +192,7 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store logopass: %w", err)
 	}
 	for _, logoPass := range updLogoPasses {
-		err := svc.Api.UploadLogoPass(logoPass)
+		err = svc.Api.UploadLogoPass(logoPass)
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,7 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store cards: %w", err)
 	}
 	for _, text := range updTexts {
-		err := svc.Api.UploadText(text)
+		err = svc.Api.UploadText(text)
 		if err != nil {
 			return err
 		}
@@ -222,7 +222,7 @@ func (svc *LocalService) UpdateAll() error {
 		return fmt.Errorf("store texts: %w", err)
 	}
 	for _, card := range updCreditCards {
-		err := svc.Api.UploadCreditCard(card)
+		err = svc.Api.UploadCreditCard(card)
 		if err != nil {
 			return err
 		}
