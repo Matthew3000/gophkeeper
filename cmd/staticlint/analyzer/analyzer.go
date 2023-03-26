@@ -12,9 +12,9 @@ import (
 	"strings"
 )
 
-var DupAnalyzer = &analysis.Analyzer{
+var DuplicateAnalyzer = &analysis.Analyzer{
 	Name: "duplicate_killer",
-	Doc:  "detects duplicated code that can be refactored into functions",
+	Doc:  "detects duplicated code",
 	Run:  run,
 }
 
@@ -30,8 +30,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	}
 
 	for snippet, count := range snippetCounts {
-		if count > 1 && count*4 <= countNodeLines(snippet) {
-			pass.Reportf(token.NoPos, "snippet %s occurs %d times and could be refactored into a func", snippet, count)
+		if count > 1 && countNodeLines(snippet) >= 3 {
+			pass.Reportf(token.NoPos, "snippet %s occurs %d times", snippet, count)
 		}
 	}
 

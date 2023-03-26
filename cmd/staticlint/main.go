@@ -4,9 +4,13 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
+	"github.com/caarlos0/env/v6"
+	"golang.org/x/tools/go/analysis/passes/nilfunc"
+	"golang.org/x/tools/go/analysis/passes/unusedresult"
 	"gophkeeper/cmd/staticlint/analyzer"
+	"log"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -22,35 +26,43 @@ import (
 	"github.com/gostaticanalysis/nilerr"
 )
 
-const Config = `config/config.json`
-
-type StaticTestConfig struct {
-	path string
+type envConfig struct {
+	Path string `env:"CONFIG_PATH" envDefault:"C:/repo/GO/gophkeeper/cmd/staticlint/config/config.json"`
 }
-type ConfigData struct {
+type testConfig struct {
 	StaticCheck []string
 	StyleCheck  []string
 }
 
 func main() {
-	data, err := os.ReadFile(filepath.Join(filepath.Dir("C:/repo/GO/gophkeeper/cmd/staticlint/"), Config))
+	var pathCfg envConfig
+	if err := env.Parse(&pathCfg); err != nil {
+		log.Fatal(err)
+	}
+
+	flag.StringVar(&pathCfg.Path, "p", pathCfg.Path, "Config path")
+	flag.Parse()
+
+	data, err := os.ReadFile(pathCfg.Path)
 	if err != nil {
 		panic(err)
 	}
 
-	var cfg ConfigData
+	var cfg testConfig
 	if err = json.Unmarshal(data, &cfg); err != nil {
 		panic(err)
 	}
 
 	analyzers := []*analysis.Analyzer{
-		analyzer.DupAnalyzer,
+		analyzer.DuplicateAnalyzer,
 		printf.Analyzer,
 		shadow.Analyzer,
 		structtag.Analyzer,
 		httpresponse.Analyzer,
 		goc.Analyzer,
 		nilerr.Analyzer,
+		unusedresult.Analyzer,
+		nilfunc.Analyzer,
 	}
 
 	for _, v := range staticcheck.Analyzers {
