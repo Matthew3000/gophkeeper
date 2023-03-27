@@ -751,6 +751,10 @@ func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
 	}
 
 	data, err := tools.DecryptString(binary.Binary, svc.key)
+	if err != nil {
+		return err
+	}
+
 	err = os.WriteFile(path+"/"+name, []byte(data), 0644)
 	if err != nil {
 		return err

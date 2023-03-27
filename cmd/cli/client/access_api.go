@@ -34,6 +34,55 @@ func NewApi(url string) *ServerApi {
 	return &ServerApi{BaseURL: url, cookie: &http.Cookie{Name: "session.id", Value: ""}}
 }
 
+func (api *ServerApi) downloadData(url string) ([]byte, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodGet, api.BaseURL+url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("creating request: %w", err)
+	}
+	req.AddCookie(api.cookie)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	jsonBytes, err := io.ReadAll(resp.Body)
+	if err != nil && !errors.Is(err, io.EOF) {
+		return nil, fmt.Errorf("read esponse body: %w", err)
+	}
+	return jsonBytes, nil
+}
+
+func (api *ServerApi) uploadData(data interface{}, url string) error {
+	jsonBody, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest(http.MethodPost, api.BaseURL+url, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+	req.AddCookie(api.cookie)
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusConflict {
+			return ErrAlreadyExists
+		}
+		return fmt.Errorf("server returned status code %d", resp.StatusCode)
+	}
+	return nil
+}
+
 func (api *ServerApi) Register(user service.User) error {
 	req, err := json.Marshal(user)
 	if err != nil {
@@ -95,19 +144,15 @@ func (api *ServerApi) Login(user service.User) error {
 func (api *ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, api.BaseURL+app.GetLogoPassesEndpoint, nil)
-	req.AddCookie(api.cookie)
-	resp, err := client.Do(req)
+	resp, err := api.downloadData(app.GetLogoPassesEndpoint)
 	if err != nil {
-		return listLogoPasses, fmt.Errorf("request: %w", err)
+		return listLogoPasses, err
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&listLogoPasses)
-	if err != nil {
-		if !errors.Is(err, io.EOF) {
-			return listLogoPasses, fmt.Errorf("json decoder: %w", err)
+	if len(resp) != 0 {
+		err = json.Unmarshal(resp, &listLogoPasses)
+		if err != nil {
+			return nil, fmt.Errorf("json unmarshall: %w", err)
 		}
 	}
 	return listLogoPasses, nil
@@ -116,19 +161,15 @@ func (api *ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 func (api *ServerApi) GetTexts() ([]service.TextData, error) {
 	var listTexts []service.TextData
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, api.BaseURL+app.GetTextsEndpoint, nil)
-	req.AddCookie(api.cookie)
-	resp, err := client.Do(req)
+	resp, err := api.downloadData(app.GetTextsEndpoint)
 	if err != nil {
 		return listTexts, err
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&listTexts)
-	if !errors.Is(err, io.EOF) {
+	if len(resp) != 0 {
+		err = json.Unmarshal(resp, &listTexts)
 		if err != nil {
-			return listTexts, err
+			return nil, fmt.Errorf("json unmarshall: %w", err)
 		}
 	}
 	return listTexts, nil
@@ -137,19 +178,15 @@ func (api *ServerApi) GetTexts() ([]service.TextData, error) {
 func (api *ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 	var listCreditCards []service.CreditCard
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, api.BaseURL+app.GetCreditCardsEndpoint, nil)
-	req.AddCookie(api.cookie)
-	resp, err := client.Do(req)
+	resp, err := api.downloadData(app.GetCreditCardsEndpoint)
 	if err != nil {
 		return listCreditCards, err
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&listCreditCards)
-	if err != nil {
-		if !errors.Is(err, io.EOF) {
-			return listCreditCards, err
+	if len(resp) != 0 {
+		err = json.Unmarshal(resp, &listCreditCards)
+		if err != nil {
+			return nil, fmt.Errorf("json unmarshall: %w", err)
 		}
 	}
 	return listCreditCards, nil
@@ -158,19 +195,15 @@ func (api *ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 func (api *ServerApi) GetBinaryList() ([]service.BinaryData, error) {
 	var binaryList []service.BinaryData
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, api.BaseURL+app.GetBinaryListEndpoint, nil)
-	req.AddCookie(api.cookie)
-	resp, err := client.Do(req)
+	resp, err := api.downloadData(app.GetBinaryListEndpoint)
 	if err != nil {
-		return binaryList, fmt.Errorf("request: %w", err)
+		return binaryList, err
 	}
-	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&binaryList)
-	if err != nil {
-		if !errors.Is(err, io.EOF) {
-			return binaryList, fmt.Errorf("json decoder: %w", err)
+	if len(resp) != 0 {
+		err = json.Unmarshal(resp, &binaryList)
+		if err != nil {
+			return nil, fmt.Errorf("json unmarshall: %w", err)
 		}
 	}
 	return binaryList, nil
@@ -184,6 +217,10 @@ func (api *ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, 
 
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, api.BaseURL+app.GetBinaryEndpoint, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return binary, err
+	}
+
 	req.AddCookie(api.cookie)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -204,113 +241,41 @@ func (api *ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, 
 }
 
 func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
-	jsonBody, err := json.Marshal(logoPass)
+	err := api.uploadData(logoPass, app.PutLogoPassEndpoint)
 	if err != nil {
 		return err
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPost, api.BaseURL+app.PutLogoPassEndpoint, bytes.NewBuffer(jsonBody))
-	req.AddCookie(api.cookie)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		if resp.StatusCode == http.StatusConflict {
-			return ErrAlreadyExists
-		}
-		return fmt.Errorf("server returned status code %d", resp.StatusCode)
-	}
-
-	fmt.Println("login password pair has been successfully updated")
+	fmt.Println("Login password pair has been successfully updated")
 	return nil
 }
 
 func (api *ServerApi) UploadText(text service.TextData) error {
-	jsonBody, err := json.Marshal(text)
+	err := api.uploadData(text, app.PutTextEndpoint)
 	if err != nil {
 		return err
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPost, api.BaseURL+app.PutTextEndpoint, bytes.NewBuffer(jsonBody))
-	req.AddCookie(api.cookie)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		if resp.StatusCode == http.StatusConflict {
-			return ErrAlreadyExists
-		}
-		return fmt.Errorf("server returned status code %d", resp.StatusCode)
-	}
-
-	fmt.Println("login password pair has been successfully updated")
+	fmt.Println("The secret text has been successfully updated. What's it about, I wonder")
 	return nil
 }
 
 func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
-	jsonBody, err := json.Marshal(card)
+	err := api.uploadData(card, app.PutCreditCardEndpoint)
 	if err != nil {
 		return err
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPost, api.BaseURL+app.PutCreditCardEndpoint, bytes.NewBuffer(jsonBody))
-	req.AddCookie(api.cookie)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		if resp.StatusCode == http.StatusConflict {
-			return ErrAlreadyExists
-		}
-		return fmt.Errorf("server returned status code %d", resp.StatusCode)
-	}
-
-	fmt.Println("login password pair has been successfully updated")
+	fmt.Println("The credit card info has been successfully updated")
 	return nil
 }
 
 func (api *ServerApi) UploadBinary(binary service.BinaryData) error {
-	jsonBody, err := json.Marshal(binary)
+	err := api.uploadData(binary, app.PutBinaryEndpoint)
 	if err != nil {
 		return err
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodPost, api.BaseURL+app.PutBinaryEndpoint, bytes.NewBuffer(jsonBody))
-	req.AddCookie(api.cookie)
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		if resp.StatusCode == http.StatusConflict {
-			return ErrAlreadyExists
-		}
-		return fmt.Errorf("server returned status code %d", resp.StatusCode)
-	}
-
-	fmt.Println("login password pair has been successfully updated")
+	fmt.Println("Your binary data has been successfully updated")
 	return nil
 }
