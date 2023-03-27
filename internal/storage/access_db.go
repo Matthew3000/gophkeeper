@@ -207,13 +207,13 @@ func (dbStorage DBStorage) BatchGetCreditCards(login string, ctx context.Context
 func (dbStorage DBStorage) GetBinaryList(login string, ctx context.Context) ([]service.BinaryData, error) {
 	var binaryList []service.BinaryData
 
-	err := dbStorage.db.WithContext(ctx).Table("binary_data").Select("id, description, updated_at").
+	err := dbStorage.db.WithContext(ctx).Table("binary_data").Select("id, login, description, updated_at").
 		Where("login  = 	?", login).Find(&binaryList).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return binaryList, ErrEmpty
-		}
 		return binaryList, err
+	}
+	if len(binaryList) == 0 {
+		return binaryList, ErrEmpty
 	}
 
 	return binaryList, nil

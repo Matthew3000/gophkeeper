@@ -140,7 +140,8 @@ func (app *App) batchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		log.Printf("get logpass pairs: %s for user: %s", err, logoPass.Login)
 		if errors.Is(err, storage.ErrEmpty) {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return
@@ -185,7 +186,8 @@ func (app *App) batchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("get secrets: %s for user: %s", err, text.Login)
 		if errors.Is(err, storage.ErrEmpty) {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return
@@ -230,7 +232,8 @@ func (app *App) batchDownloadCreditCards(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		log.Printf("get logpass pairs: %s for user: %s", err, card.Login)
 		if errors.Is(err, storage.ErrEmpty) {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return
@@ -275,7 +278,8 @@ func (app *App) downloadBinaryList(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("get binary list: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
-			w.WriteHeader(http.StatusNoContent)
+			w.WriteHeader(http.StatusNotFound)
+			return
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return
@@ -302,6 +306,7 @@ func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 		log.Printf("get binary: %s for user: %s", err, binary.Login)
 		if errors.Is(err, storage.ErrEmpty) {
 			w.WriteHeader(http.StatusNotFound)
+			return
 		} else {
 			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
 			return

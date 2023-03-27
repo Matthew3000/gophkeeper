@@ -10,13 +10,13 @@ type Config struct {
 	OutputFolder  string `env:"OUTPUT_FOLDER"     envDefault:"C:/temp/gophkeeper"`
 }
 
-const DateTimeLayout = "02.01.2006 15:04:05"
+const dateTimeLayout = "02.01.2006 15:04:05"
 
 const (
-	LogoPassFile    = "LogoPasses.json"
-	TextFile        = "TextData.json"
-	CreditCardFile  = "CreditCards.json"
-	BinaryListFile  = "BinaryList.json"
+	logoPassFile    = "LogoPasses.json"
+	textFile        = "TextData.json"
+	creditCardFile  = "CreditCards.json"
+	binaryListFile  = "BinaryList.json"
 	UpdateDataTimer = 300 * time.Second
 )
 

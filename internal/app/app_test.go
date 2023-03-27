@@ -35,22 +35,24 @@ func TestApp(t *testing.T) {
 	var app = NewApp(cfg, userStorage, *cookieStorage)
 	go app.Run()
 
-	cookie := AuthTest(t, app)
-	PutLogoPassTest(t, app, cookie)
-	PutTextTest(t, app, cookie)
-	PutCreditCardTest(t, app, cookie)
-	PutBinaryTest(t, app, cookie)
-	GetLogoPassesTest(t, app, cookie)
-	GetTextsTest(t, app, cookie)
-	GetCreditCardsTest(t, app, cookie)
-	GetBinaryListTest(t, app, cookie)
-	GetBinaryTest(t, app, cookie)
-
 	app.UserStorage.DeleteAll()
+
+	cookies := AuthTest(t, app)
+	PutLogoPassTest(t, app, cookies)
+	PutTextTest(t, app, cookies)
+	PutCreditCardTest(t, app, cookies)
+	PutBinaryTest(t, app, cookies)
+	GetLogoPassesTest(t, app, cookies)
+	GetTextsTest(t, app, cookies)
+	GetCreditCardsTest(t, app, cookies)
+	GetBinaryListTest(t, app, cookies)
+	GetBinaryTest(t, app, cookies)
+
+	//app.UserStorage.DeleteAll()
 }
 
-func AuthTest(t *testing.T, app *App) http.Cookie {
-	var cookie http.Cookie
+func AuthTest(t *testing.T, app *App) []http.Cookie {
+	var cookies []http.Cookie
 	type want struct {
 		statusCode  int
 		contentType string
@@ -76,6 +78,17 @@ func AuthTest(t *testing.T, app *App) http.Cookie {
 			user: service.User{
 				Login:    "nevergonna",
 				Password: "giveyouup",
+			},
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "register ok. empty user",
+			addr: RegisterEndpoint,
+			user: service.User{
+				Login:    "you know the rules",
+				Password: "and so do I",
 			},
 			want: want{
 				statusCode: http.StatusOK,
@@ -128,6 +141,17 @@ func AuthTest(t *testing.T, app *App) http.Cookie {
 				statusCode: http.StatusOK,
 			},
 		},
+		{
+			name: "login OK: empty user",
+			addr: LoginEndpoint,
+			user: service.User{
+				Login:    "you know the rules",
+				Password: "and so do I",
+			},
+			want: want{
+				statusCode: http.StatusOK,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -143,15 +167,15 @@ func AuthTest(t *testing.T, app *App) http.Cookie {
 			if tt.addr == LoginEndpoint {
 				if result.StatusCode() == http.StatusOK {
 					s := result.Cookies()
-					cookie = *s[0]
+					cookies = append(cookies, *s[0])
 				}
 			}
 		})
 	}
-	return cookie
+	return cookies
 }
 
-func PutLogoPassTest(t *testing.T, app *App, cookie http.Cookie) {
+func PutLogoPassTest(t *testing.T, app *App, cookies []http.Cookie) {
 
 	type want struct {
 		statusCode  int
@@ -225,7 +249,7 @@ func PutLogoPassTest(t *testing.T, app *App, cookie http.Cookie) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := resty.New().R().SetHeader("Content-Type", "application/json").
-				SetBody(tt.data).SetCookie(&cookie)
+				SetBody(tt.data).SetCookie(&cookies[0])
 
 			result, err := request.Post("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
@@ -236,7 +260,7 @@ func PutLogoPassTest(t *testing.T, app *App, cookie http.Cookie) {
 	}
 }
 
-func PutTextTest(t *testing.T, app *App, cookie http.Cookie) {
+func PutTextTest(t *testing.T, app *App, cookies []http.Cookie) {
 
 	type want struct {
 		statusCode  int
@@ -306,7 +330,7 @@ func PutTextTest(t *testing.T, app *App, cookie http.Cookie) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := resty.New().R().SetHeader("Content-Type", "application/json").
-				SetBody(tt.data).SetCookie(&cookie)
+				SetBody(tt.data).SetCookie(&cookies[0])
 
 			result, err := request.Post("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
@@ -317,7 +341,7 @@ func PutTextTest(t *testing.T, app *App, cookie http.Cookie) {
 	}
 }
 
-func PutCreditCardTest(t *testing.T, app *App, cookie http.Cookie) {
+func PutCreditCardTest(t *testing.T, app *App, cookies []http.Cookie) {
 
 	type want struct {
 		statusCode  int
@@ -399,7 +423,7 @@ func PutCreditCardTest(t *testing.T, app *App, cookie http.Cookie) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := resty.New().R().SetHeader("Content-Type", "application/json").
-				SetBody(tt.data).SetCookie(&cookie)
+				SetBody(tt.data).SetCookie(&cookies[0])
 
 			result, err := request.Post("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
@@ -410,7 +434,7 @@ func PutCreditCardTest(t *testing.T, app *App, cookie http.Cookie) {
 	}
 }
 
-func PutBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
+func PutBinaryTest(t *testing.T, app *App, cookies []http.Cookie) {
 
 	type want struct {
 		statusCode  int
@@ -483,7 +507,7 @@ func PutBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := resty.New().R().SetHeader("Content-Type", "application/json").
-				SetBody(tt.data).SetCookie(&cookie)
+				SetBody(tt.data).SetCookie(&cookies[0])
 
 			result, err := request.Post("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
@@ -494,20 +518,23 @@ func PutBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
 	}
 }
 
-func GetLogoPassesTest(t *testing.T, app *App, cookie http.Cookie) {
+func GetLogoPassesTest(t *testing.T, app *App, cookies []http.Cookie) {
 	type want struct {
 		statusCode  int
 		contentType string
+		bodyLen     int
 	}
 	tests := []struct {
-		name string
-		addr string
-		data []service.LogoPass
-		want want
+		name      string
+		addr      string
+		cookieNum int
+		data      []service.LogoPass
+		want      want
 	}{
 		{
-			name: "logopass list download ok",
-			addr: GetLogoPassesEndpoint,
+			name:      "logopass list download ok",
+			addr:      GetLogoPassesEndpoint,
+			cookieNum: 0,
 			data: []service.LogoPass{
 				{
 					SecretLogin: "aaa",
@@ -520,34 +547,56 @@ func GetLogoPassesTest(t *testing.T, app *App, cookie http.Cookie) {
 				contentType: "application/json; charset=utf-8",
 			},
 		},
+		{
+			name:      "logopass list download fail: no content",
+			addr:      GetLogoPassesEndpoint,
+			cookieNum: 1,
+			want: want{
+				statusCode: http.StatusNotFound,
+				bodyLen:    0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookie)
+			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookies[tt.cookieNum])
 
 			result, err := request.Get("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode())
 			assert.Equal(t, tt.want.contentType, result.Header().Get("Content-Type"))
+
+			if result.StatusCode() == http.StatusOK {
+				var resp []service.LogoPass
+				err = json.Unmarshal(result.Body(), &resp)
+				require.NoError(t, err)
+				tt.data[0].Model = resp[0].Model
+				assert.Equal(t, tt.data, resp)
+			} else {
+				assert.Equal(t, tt.want.bodyLen, len(result.Body()))
+			}
 		})
 	}
 }
 
-func GetTextsTest(t *testing.T, app *App, cookie http.Cookie) {
+func GetTextsTest(t *testing.T, app *App, cookies []http.Cookie) {
 	type want struct {
 		statusCode  int
 		contentType string
+		bodyLen     int
 	}
 	tests := []struct {
-		name string
-		addr string
-		data []service.TextData
-		want want
+		name      string
+		addr      string
+		cookieNum int
+		data      []service.TextData
+		want      want
 	}{
 		{
-			name: "text list download ok",
-			addr: GetTextsEndpoint,
+			name:      "text list download ok",
+			addr:      GetTextsEndpoint,
+			cookieNum: 0,
 			data: []service.TextData{
 				{
 					Text:        "never gonna run around, desert you",
@@ -559,34 +608,56 @@ func GetTextsTest(t *testing.T, app *App, cookie http.Cookie) {
 				contentType: "application/json; charset=utf-8",
 			},
 		},
+		{
+			name:      "text list download fail: no content",
+			addr:      GetTextsEndpoint,
+			cookieNum: 1,
+			want: want{
+				statusCode: http.StatusNotFound,
+				bodyLen:    0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookie)
+			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookies[tt.cookieNum])
 
 			result, err := request.Get("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode())
 			assert.Equal(t, tt.want.contentType, result.Header().Get("Content-Type"))
+
+			if result.StatusCode() == http.StatusOK {
+				var resp []service.TextData
+				err = json.Unmarshal(result.Body(), &resp)
+				require.NoError(t, err)
+				tt.data[0].Model = resp[0].Model
+				assert.Equal(t, tt.data, resp)
+			} else {
+				assert.Equal(t, tt.want.bodyLen, len(result.Body()))
+			}
 		})
 	}
 }
 
-func GetCreditCardsTest(t *testing.T, app *App, cookie http.Cookie) {
+func GetCreditCardsTest(t *testing.T, app *App, cookies []http.Cookie) {
 	type want struct {
 		statusCode  int
 		contentType string
+		bodyLen     int
 	}
 	tests := []struct {
-		name string
-		addr string
-		data []service.CreditCard
-		want want
+		name      string
+		addr      string
+		cookieNum int
+		data      []service.CreditCard
+		want      want
 	}{
 		{
-			name: "credit cards download ok",
-			addr: GetCreditCardsEndpoint,
+			name:      "credit cards download ok",
+			addr:      GetCreditCardsEndpoint,
+			cookieNum: 0,
 			data: []service.CreditCard{
 				{
 					Number:      "1111",
@@ -601,34 +672,57 @@ func GetCreditCardsTest(t *testing.T, app *App, cookie http.Cookie) {
 				contentType: "application/json; charset=utf-8",
 			},
 		},
+		{
+			name:      "credit cards download fail: no content",
+			addr:      GetCreditCardsEndpoint,
+			cookieNum: 1,
+			want: want{
+				statusCode: http.StatusNotFound,
+				bodyLen:    0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookie)
+			request := resty.New().R().SetHeader("Content-Type", "application/json").
+				SetCookie(&cookies[tt.cookieNum])
 
 			result, err := request.Get("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode())
 			assert.Equal(t, tt.want.contentType, result.Header().Get("Content-Type"))
+
+			if result.StatusCode() == http.StatusOK {
+				var resp []service.CreditCard
+				err = json.Unmarshal(result.Body(), &resp)
+				require.NoError(t, err)
+				tt.data[0].Model = resp[0].Model
+				assert.Equal(t, tt.data, resp)
+			} else {
+				assert.Equal(t, tt.want.bodyLen, len(result.Body()))
+			}
 		})
 	}
 }
 
-func GetBinaryListTest(t *testing.T, app *App, cookie http.Cookie) {
+func GetBinaryListTest(t *testing.T, app *App, cookies []http.Cookie) {
 	type want struct {
 		statusCode  int
 		contentType string
+		bodyLen     int
 	}
 	tests := []struct {
-		name string
-		addr string
-		data []service.BinaryData
-		want want
+		name      string
+		addr      string
+		cookieNum int
+		data      []service.BinaryData
+		want      want
 	}{
 		{
-			name: "binary list download ok",
-			addr: GetBinaryListEndpoint,
+			name:      "binary list download ok",
+			addr:      GetBinaryListEndpoint,
+			cookieNum: 0,
 			data: []service.BinaryData{
 				{
 					Description: "aaa",
@@ -639,47 +733,76 @@ func GetBinaryListTest(t *testing.T, app *App, cookie http.Cookie) {
 				contentType: "application/json; charset=utf-8",
 			},
 		},
+		{
+			name:      "binary list download fail: no content",
+			addr:      GetBinaryListEndpoint,
+			cookieNum: 1,
+			want: want{
+				statusCode: http.StatusNotFound,
+				bodyLen:    0,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookie)
+			request := resty.New().R().SetHeader("Content-Type", "application/json").SetCookie(&cookies[tt.cookieNum])
 
 			result, err := request.Get("http://" + app.config.ServerAddress + tt.addr)
 			require.NoError(t, err)
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode())
 			assert.Equal(t, tt.want.contentType, result.Header().Get("Content-Type"))
+
+			if result.StatusCode() == http.StatusOK {
+				var resp []service.BinaryData
+				err = json.Unmarshal(result.Body(), &resp)
+				require.NoError(t, err)
+				tt.data[0].Model = resp[0].Model
+				assert.Equal(t, tt.data, resp)
+			} else {
+				assert.Equal(t, tt.want.bodyLen, len(result.Body()))
+			}
 		})
 	}
 }
 
-func GetBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
+func GetBinaryTest(t *testing.T, app *App, cookies []http.Cookie) {
 	type want struct {
 		statusCode  int
 		contentType string
+		bodyLen     int
 	}
 	tests := []struct {
-		name    string
-		addr    string
-		reqData service.BinaryData
-		data    []service.BinaryData
-		want    want
+		name      string
+		addr      string
+		cookieNum int
+		reqData   service.BinaryData
+		data      service.BinaryData
+		want      want
 	}{
 		{
-			name: "binary download ok",
-			addr: GetBinaryEndpoint,
+			name:      "binary download ok",
+			addr:      GetBinaryEndpoint,
+			cookieNum: 0,
 			reqData: service.BinaryData{
 				Description: "aaa",
 			},
-			data: []service.BinaryData{
-				{
-					Binary:      "mЕYђ8+012gЎZQСBБ00516МЖЪQ”dм™±cgѕџфДлИдЏ'уЮ",
-					Description: "aaa",
-				},
+			data: service.BinaryData{
+				Binary:      "mЕYђ8+012gЎZQСBБ00516МЖЪQ”dм™±cgѕџфДлИдЏ'уЮ",
+				Description: "aaa",
 			},
 			want: want{
 				statusCode:  http.StatusOK,
 				contentType: "application/json; charset=utf-8",
+			},
+		},
+		{
+			name:      "binary download fail: no content",
+			addr:      GetBinaryEndpoint,
+			cookieNum: 1,
+			want: want{
+				statusCode: http.StatusNotFound,
+				bodyLen:    0,
 			},
 		},
 	}
@@ -687,7 +810,7 @@ func GetBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
 		t.Run(tt.name, func(t *testing.T) {
 			body, _ := json.Marshal(tt.reqData)
 			request := resty.New().R().SetHeader("Content-Type", "application/json").
-				SetBody(body).SetCookie(&cookie)
+				SetBody(body).SetCookie(&cookies[tt.cookieNum])
 
 			result, err := request.Post("http://" + app.config.ServerAddress + tt.addr)
 
@@ -695,6 +818,16 @@ func GetBinaryTest(t *testing.T, app *App, cookie http.Cookie) {
 
 			assert.Equal(t, tt.want.statusCode, result.StatusCode())
 			assert.Equal(t, tt.want.contentType, result.Header().Get("Content-Type"))
+
+			if result.StatusCode() == http.StatusOK {
+				var resp service.BinaryData
+				err = json.Unmarshal(result.Body(), &resp)
+				require.NoError(t, err)
+				tt.data.Model = resp.Model
+				assert.Equal(t, tt.data, resp)
+			} else {
+				assert.Equal(t, tt.want.bodyLen, len(result.Body()))
+			}
 		})
 	}
 }

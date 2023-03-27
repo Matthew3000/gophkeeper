@@ -49,7 +49,7 @@ func (storage *FileStorage) UpdatePath(path string) error {
 func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass) ([]service.LogoPass, error) {
 	var updLogoPasses []service.LogoPass
 
-	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+logoPassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updLogoPasses, err
 	}
@@ -106,7 +106,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 		if err != nil {
 			return updLogoPasses, err
 		}
-		err = os.WriteFile(storage.outputPath+LogoPassFile, jsonBytes, 0644)
+		err = os.WriteFile(storage.outputPath+logoPassFile, jsonBytes, 0644)
 		if err != nil {
 			return updLogoPasses, err
 		}
@@ -119,7 +119,7 @@ func (storage *FileStorage) StoreLogoPasses(serverLogoPasses []service.LogoPass)
 func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]service.TextData, error) {
 	var updTexts []service.TextData
 
-	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+textFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updTexts, err
 	}
@@ -176,7 +176,7 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 		if err != nil {
 			return updTexts, err
 		}
-		err = os.WriteFile(storage.outputPath+TextFile, jsonBytes, 0644)
+		err = os.WriteFile(storage.outputPath+textFile, jsonBytes, 0644)
 		if err != nil {
 			return updTexts, err
 		}
@@ -188,7 +188,7 @@ func (storage *FileStorage) StoreTexts(serverTexts []service.TextData) ([]servic
 func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditCard) ([]service.CreditCard, error) {
 	var updCreditCards []service.CreditCard
 
-	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+creditCardFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return updCreditCards, err
 	}
@@ -245,7 +245,7 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 		if err != nil {
 			return updCreditCards, err
 		}
-		err = os.WriteFile(storage.outputPath+CreditCardFile, jsonBytes, 0644)
+		err = os.WriteFile(storage.outputPath+creditCardFile, jsonBytes, 0644)
 		if err != nil {
 			return updCreditCards, err
 		}
@@ -256,7 +256,7 @@ func (storage *FileStorage) StoreCreditCards(serverCreditCards []service.CreditC
 
 }
 func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) error {
-	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+binaryListFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -298,7 +298,7 @@ func (storage *FileStorage) StoreBinaries(serverBinaries []service.BinaryData) e
 		if err != nil {
 			return err
 		}
-		err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
+		err = os.WriteFile(storage.outputPath+binaryListFile, jsonBytes, 0644)
 		if err != nil {
 			return err
 		}
@@ -312,7 +312,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	var mutex sync.Mutex
 	mutex.Lock()
 
-	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+logoPassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -357,7 +357,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(storage.outputPath+LogoPassFile, jsonBytes, 0644)
+	err = os.WriteFile(storage.outputPath+logoPassFile, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func (storage *FileStorage) UpdateLogoPass(logoPass service.LogoPass) error {
 func (storage *FileStorage) UpdateText(text service.TextData) error {
 	var mutex sync.Mutex
 	mutex.Lock()
-	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+textFile, os.O_RDWR|os.O_CREATE, 0644)
 
 	if err != nil {
 		return err
@@ -415,7 +415,7 @@ func (storage *FileStorage) UpdateText(text service.TextData) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(storage.outputPath+TextFile, jsonBytes, 0644)
+	err = os.WriteFile(storage.outputPath+textFile, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -428,7 +428,7 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 	var mutex sync.Mutex
 	mutex.Lock()
 
-	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+creditCardFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -473,7 +473,7 @@ func (storage *FileStorage) UpdateCreditCard(creditCard service.CreditCard) erro
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(storage.outputPath+CreditCardFile, jsonBytes, 0644)
+	err = os.WriteFile(storage.outputPath+creditCardFile, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -486,7 +486,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 	var mutex sync.Mutex
 	mutex.Lock()
 
-	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDWR|os.O_CREATE, 0644)
+	file, err := os.OpenFile(storage.outputPath+binaryListFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
@@ -531,7 +531,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(storage.outputPath+BinaryListFile, jsonBytes, 0644)
+	err = os.WriteFile(storage.outputPath+binaryListFile, jsonBytes, 0644)
 	if err != nil {
 		return err
 	}
@@ -543,7 +543,7 @@ func (storage *FileStorage) UpdateBinaryList(binary service.BinaryData) error {
 func (storage *FileStorage) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
 
-	file, err := os.OpenFile(storage.outputPath+LogoPassFile, os.O_RDONLY, 0644)
+	file, err := os.OpenFile(storage.outputPath+logoPassFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return listLogoPasses, err
 	}
@@ -564,7 +564,7 @@ func (storage *FileStorage) GetLogoPasses() ([]service.LogoPass, error) {
 func (storage *FileStorage) GetTexts() ([]service.TextData, error) {
 	var listTexts []service.TextData
 
-	file, err := os.OpenFile(storage.outputPath+TextFile, os.O_RDONLY, 0644)
+	file, err := os.OpenFile(storage.outputPath+textFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return listTexts, err
 	}
@@ -585,7 +585,7 @@ func (storage *FileStorage) GetTexts() ([]service.TextData, error) {
 func (storage *FileStorage) GetCreditCards() ([]service.CreditCard, error) {
 	var listCreditCards []service.CreditCard
 
-	file, err := os.OpenFile(storage.outputPath+CreditCardFile, os.O_RDONLY, 0644)
+	file, err := os.OpenFile(storage.outputPath+creditCardFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return listCreditCards, err
 	}
@@ -607,7 +607,7 @@ func (storage *FileStorage) GetCreditCards() ([]service.CreditCard, error) {
 func (storage *FileStorage) GetBinaryList() ([]service.BinaryData, error) {
 	var BinaryList []service.BinaryData
 
-	file, err := os.OpenFile(storage.outputPath+BinaryListFile, os.O_RDONLY, 0644)
+	file, err := os.OpenFile(storage.outputPath+binaryListFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return BinaryList, err
 	}

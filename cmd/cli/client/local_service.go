@@ -243,7 +243,7 @@ updateLogoPass:
 		}
 
 		row := []string{strconv.FormatUint(uint64(logoPass.ID), 10), logoPass.SecretLogin, logoPass.SecretPass,
-			logoPass.Description, logoPass.UpdatedAt.Format(DateTimeLayout)}
+			logoPass.Description, logoPass.UpdatedAt.Format(dateTimeLayout)}
 		table.Append(row)
 	}
 	table.Render()
@@ -328,7 +328,7 @@ updateText:
 			return err
 		}
 
-		row := []string{strconv.FormatUint(uint64(text.ID), 10), text.Description, text.Text, text.UpdatedAt.Format(DateTimeLayout)}
+		row := []string{strconv.FormatUint(uint64(text.ID), 10), text.Description, text.Text, text.UpdatedAt.Format(dateTimeLayout)}
 		table.Append(row)
 	}
 	table.Render()
@@ -418,7 +418,7 @@ updateCard:
 		}
 
 		row := []string{strconv.FormatUint(uint64(card.ID), 10), card.Number, card.Holder, card.DueDate, card.CVV,
-			card.Description, card.UpdatedAt.Format(DateTimeLayout)}
+			card.Description, card.UpdatedAt.Format(dateTimeLayout)}
 		table.Append(row)
 	}
 	table.Render()
@@ -503,7 +503,7 @@ updateBinary:
 	table.SetHeader([]string{"ID", "Description", "Last updated"})
 
 	for _, binary := range binaryList {
-		row := []string{strconv.FormatUint(uint64(binary.ID), 10), binary.Description, binary.UpdatedAt.Format(DateTimeLayout)}
+		row := []string{strconv.FormatUint(uint64(binary.ID), 10), binary.Description, binary.UpdatedAt.Format(dateTimeLayout)}
 		table.Append(row)
 	}
 	table.Render()
