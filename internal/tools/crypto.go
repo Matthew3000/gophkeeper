@@ -2,35 +2,77 @@
 package tools
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func EncryptString(plaintext, secret string) (string, error) {
-	key := []byte(secret)
+// EncryptString is used to encrypt string data
+func EncryptString(plaintext string, key string) (string, error) {
 	plaintextBytes := []byte(plaintext)
+	keyBytes := []byte(key)
 
-	for i := 0; i < len(plaintextBytes); i++ {
-		plaintextBytes[i] ^= key[i%len(key)]
-	}
-
-	encodedCiphertext := base64.StdEncoding.EncodeToString(plaintextBytes)
-	return encodedCiphertext, nil
-}
-
-func DecryptString(ciphertext, secret string) (string, error) {
-	key := []byte(secret)
-
-	decodedCiphertext, err := base64.StdEncoding.DecodeString(ciphertext)
+	block, err := aes.NewCipher(keyBytes)
 	if err != nil {
 		return "", err
 	}
 
-	for i := 0; i < len(decodedCiphertext); i++ {
-		decodedCiphertext[i] ^= key[i%len(key)]
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
 	}
 
-	return string(decodedCiphertext), nil
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err := rand.Read(nonce); err != nil {
+		return "", err
+	}
+
+	ciphertext := gcm.Seal(nonce, nonce, plaintextBytes, nil)
+	ciphertextString := base64.StdEncoding.EncodeToString(ciphertext)
+
+	return ciphertextString, nil
+}
+
+// DecryptString is used to decrypt string data
+func DecryptString(ciphertextString string, key string) (string, error) {
+	ciphertext, err := base64.StdEncoding.DecodeString(ciphertextString)
+	if err != nil {
+		return "", err
+	}
+
+	keyBytes := []byte(key)
+
+	block, err := aes.NewCipher(keyBytes)
+	if err != nil {
+		return "", err
+	}
+
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	plaintextBytes, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+
+	plaintext := string(plaintextBytes)
+	return plaintext, nil
+}
+
+// GenerateKey used to generate a size 16 key from a string
+func GenerateKey(input string) string {
+	hash := sha256.Sum256([]byte(input))
+	key := hash[:16]
+
+	return hex.EncodeToString(key)
 }
 
 // GeneratePasswordHash hashes a user password in terms of security

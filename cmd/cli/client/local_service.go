@@ -127,7 +127,7 @@ func (svc *LocalService) Auth(login, password string) error {
 	if err != nil {
 		return err
 	}
-	svc.key = password
+	svc.key = tools.GenerateKey(password)
 
 	err = svc.storage.UpdatePath(fmt.Sprintf("%s/%s/", svc.config.OutputFolder, login))
 	if err != nil {
@@ -157,7 +157,8 @@ func (svc *LocalService) Register(login, password string) error {
 	if err != nil {
 		return err
 	}
-	svc.key = password
+	svc.key = tools.GenerateKey(password)
+
 	err = svc.storage.UpdatePath(fmt.Sprintf("%s/%s/", svc.config.OutputFolder, login))
 	if err != nil {
 		return err
