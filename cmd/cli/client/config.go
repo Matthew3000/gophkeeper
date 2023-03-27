@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// Config holds the address of remote server and the output folder for local storage
 type Config struct {
 	ServerAddress string `env:"SERVER_ADDRESS"   envDefault:"http://localhost:8080"`
 	OutputFolder  string `env:"OUTPUT_FOLDER"     envDefault:"C:/temp/gophkeeper"`
@@ -12,6 +13,7 @@ type Config struct {
 
 const dateTimeLayout = "02.01.2006 15:04:05"
 
+// holds common file names for local storage
 const (
 	logoPassFile    = "LogoPasses.json"
 	textFile        = "TextData.json"
@@ -20,6 +22,7 @@ const (
 	UpdateDataTimer = 300 * time.Second
 )
 
+// self-explanatory errors for the package
 var (
 	ErrUserExists         = errors.New("user already exists")
 	ErrInvalidCredentials = errors.New("invalid credentials")

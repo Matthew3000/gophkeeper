@@ -12,6 +12,7 @@ import (
 	"net/http"
 )
 
+// Api is an interface of all api interactions needed for Gophkeeper
 type Api interface {
 	Register(user service.User) error
 	Login(user service.User) error
@@ -26,15 +27,18 @@ type Api interface {
 	UploadBinary(binary service.BinaryData) error
 }
 
+// ServerApi holds the url of remote and user cookie for requests
 type ServerApi struct {
 	BaseURL string
 	cookie  *http.Cookie
 }
 
+// NewApi creates a new instance of ServerApi according to the settings
 func NewApi(url string) *ServerApi {
 	return &ServerApi{BaseURL: url, cookie: &http.Cookie{Name: "session.id", Value: ""}}
 }
 
+// downloadData sends a get request and returns []bytes of response
 func (api *ServerApi) downloadData(url string) ([]byte, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, api.BaseURL+url, nil)
@@ -55,6 +59,7 @@ func (api *ServerApi) downloadData(url string) ([]byte, error) {
 	return jsonBytes, nil
 }
 
+// uploadData sends a post request marshalling input data and checks for proper response
 func (api *ServerApi) uploadData(data interface{}, url string) error {
 	jsonBody, err := json.Marshal(data)
 	if err != nil {
@@ -84,6 +89,8 @@ func (api *ServerApi) uploadData(data interface{}, url string) error {
 	return nil
 }
 
+// Register sends post request with service.User with 'login' and 'password' fields
+// returns any errors occurred in the process
 func (api *ServerApi) Register(user service.User) error {
 	req, err := json.Marshal(user)
 	if err != nil {
@@ -113,6 +120,8 @@ func (api *ServerApi) Register(user service.User) error {
 	return nil
 }
 
+// Login sends post request with service.User with 'login' and 'password' fields
+// returns any errors occurred in the process
 func (api *ServerApi) Login(user service.User) error {
 	req, err := json.Marshal(user)
 	if err != nil {
@@ -142,6 +151,7 @@ func (api *ServerApi) Login(user service.User) error {
 	return nil
 }
 
+// GetLogoPasses sends a http.Get request and returns the list of service.LogoPass acquired from the remote
 func (api *ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
 
@@ -159,6 +169,7 @@ func (api *ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 	return listLogoPasses, nil
 }
 
+// GetTexts sends a http.Get request and returns the list of service.TextData acquired from the remote
 func (api *ServerApi) GetTexts() ([]service.TextData, error) {
 	var listTexts []service.TextData
 
@@ -176,6 +187,7 @@ func (api *ServerApi) GetTexts() ([]service.TextData, error) {
 	return listTexts, nil
 }
 
+// GetCreditCards sends a http.Get request and returns the list of service.CreditCard acquired from the remote
 func (api *ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 	var listCreditCards []service.CreditCard
 
@@ -193,6 +205,7 @@ func (api *ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 	return listCreditCards, nil
 }
 
+// GetBinaryList sends a http.Get request and returns the list of service.BinaryData acquired from the remote
 func (api *ServerApi) GetBinaryList() ([]service.BinaryData, error) {
 	var binaryList []service.BinaryData
 
@@ -210,6 +223,7 @@ func (api *ServerApi) GetBinaryList() ([]service.BinaryData, error) {
 	return binaryList, nil
 }
 
+// GetBinary sends a http.Get request and returns service.BinaryData acquired from the remote
 func (api *ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, error) {
 	jsonBody, err := json.Marshal(binary)
 	if err != nil {
@@ -241,6 +255,7 @@ func (api *ServerApi) GetBinary(binary service.BinaryData) (service.BinaryData, 
 	return binary, nil
 }
 
+// UploadLogoPass sends post request that contains service.LogoPass
 func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
 	err := api.uploadData(logoPass, app.PutLogoPassEndpoint)
 	if err != nil {
@@ -250,6 +265,7 @@ func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
 	return nil
 }
 
+// UploadText sends post request that contains service.TextData
 func (api *ServerApi) UploadText(text service.TextData) error {
 	err := api.uploadData(text, app.PutTextEndpoint)
 	if err != nil {
@@ -259,6 +275,7 @@ func (api *ServerApi) UploadText(text service.TextData) error {
 	return nil
 }
 
+// UploadCreditCard sends post request that contains service.CreditCard
 func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
 	err := api.uploadData(card, app.PutCreditCardEndpoint)
 	if err != nil {
@@ -268,6 +285,7 @@ func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
 	return nil
 }
 
+// UploadBinary sends post request that contains service.BinaryData
 func (api *ServerApi) UploadBinary(binary service.BinaryData) error {
 	err := api.uploadData(binary, app.PutBinaryEndpoint)
 	if err != nil {

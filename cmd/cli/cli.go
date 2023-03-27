@@ -1,3 +1,4 @@
+// Package main initializes the cli of Gophkeeper secrets manager service
 package main
 
 import (

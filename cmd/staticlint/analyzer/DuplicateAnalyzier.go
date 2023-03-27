@@ -1,6 +1,4 @@
-// Package analyzer search call os.Exit in main packages and report position.
-// Implements analysis.Analyzer type interface for multi-check.
-
+// Package analyzer searches for duplicate code. Implements analysis.Analyzer type interface for multi-check.
 package analyzer
 
 import (

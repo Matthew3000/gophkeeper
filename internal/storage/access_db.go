@@ -15,13 +15,13 @@ func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) 
 	err := dbStorage.db.WithContext(ctx).Where("login = ?", user.Login).First(&dbUser).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			hashedPassword, err := tools.GeneratePasswordHash(user.Password)
-			if err != nil {
+			hashedPassword, passErr := tools.GeneratePasswordHash(user.Password)
+			if passErr != nil {
 				return fmt.Errorf("error in password hashing: %s", err)
 			}
 			user.Password = hashedPassword
-			err = dbStorage.db.WithContext(ctx).Create(&user).Error
-			if err != nil {
+			passErr = dbStorage.db.WithContext(ctx).Create(&user).Error
+			if passErr != nil {
 				return err
 			}
 			return nil

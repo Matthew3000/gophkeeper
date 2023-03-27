@@ -1,3 +1,4 @@
+// Package client contains all the methods and structs needed to run cli of Gophkeeper secrets manager service
 package client
 
 import (
@@ -14,6 +15,7 @@ import (
 	"time"
 )
 
+// LocalService holds structures crucial for cli work
 type LocalService struct {
 	config  Config
 	Api     Api
@@ -21,10 +23,12 @@ type LocalService struct {
 	key     string
 }
 
+// NewService creates new instance of a LocalService
 func NewService(config Config, api Api, storage Storage) *LocalService {
 	return &LocalService{config: config, Api: api, storage: storage}
 }
 
+// getAnswer is responsible for communicating with user and returns whatever user printed in
 func (svc *LocalService) getAnswer(ask string) string {
 	reader := bufio.NewReader(os.Stdin)
 ask:
@@ -38,6 +42,7 @@ ask:
 	return answer
 }
 
+// StartCommunicate starts the dialog with the user politely asking for authorization credentials
 func (svc *LocalService) StartCommunicate() error {
 auth:
 	choice := svc.getAnswer("login: type 1\nRegister: type 2")
@@ -62,6 +67,7 @@ auth:
 	return nil
 }
 
+// getActionFromUser continues the pleasant chat by showing the options and asking for user's today's intentions
 func (svc *LocalService) getActionFromUser() {
 initialActionChoice:
 
@@ -111,6 +117,8 @@ initialActionChoice:
 	goto initialActionChoice
 }
 
+// Auth is responsible for creating service.User needed further for request.
+// In case of successful authorization it merge-updates all local and remote data for this users
 func (svc *LocalService) Auth(login, password string) error {
 	var user service.User
 	user.Login = login
@@ -140,6 +148,7 @@ func (svc *LocalService) Auth(login, password string) error {
 	return nil
 }
 
+// Register is responsible for creating service.User needed further for request.
 func (svc *LocalService) Register(login, password string) error {
 	var user service.User
 	user.Login = login
@@ -158,6 +167,7 @@ func (svc *LocalService) Register(login, password string) error {
 	return nil
 }
 
+// UpdateAll upon called, tries to merge and update all user's info stored locally and remotely
 func (svc *LocalService) UpdateAll() error {
 	// means no auth yet, so no update required
 	if svc.key == "" {
@@ -221,6 +231,10 @@ func (svc *LocalService) UpdateAll() error {
 	return nil
 }
 
+// showLogoPasses prints all available logo-pass pairs in a cute table and asks for further instructions
+// the options are:
+//   - update certain data
+//   - exit back to the choice of available actions
 func (svc *LocalService) showLogoPasses() error {
 updateLogoPass:
 	listLogoPasses, err := svc.storage.GetLogoPasses()
@@ -280,6 +294,7 @@ updateLogoPass:
 	return nil
 }
 
+// PutLogoPass asks user to enter all the info needed to create an instance of service.LogoPass in storage
 func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
 	logoPass.SecretLogin = svc.getAnswer("Please, enter login")
 	logoPass.SecretPass = svc.getAnswer("Please, enter password")
@@ -312,6 +327,10 @@ func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
 	return nil
 }
 
+// showTexts prints all available secret texts in a cute table and asks for further instructions
+// the options are:
+//   - update certain data
+//   - exit back to the choice of available actions
 func (svc *LocalService) showTexts() error {
 updateText:
 	listTexts, err := svc.storage.GetTexts()
@@ -366,6 +385,7 @@ updateText:
 	return nil
 }
 
+// PutText asks user to enter all the info needed to create an instance of service.TextData in storage
 func (svc *LocalService) PutText(text service.TextData) error {
 	text.Text = svc.getAnswer("Please, enter text")
 	if text.Description == "" {
@@ -392,6 +412,10 @@ func (svc *LocalService) PutText(text service.TextData) error {
 	return nil
 }
 
+// showCreditCards prints all available credit cards in a cute table and asks for further instructions
+// the options are:
+//   - update certain data
+//   - exit back to the choice of available actions
 func (svc *LocalService) showCreditCards() error {
 updateCard:
 	listCreditCards, err := svc.storage.GetCreditCards()
@@ -455,6 +479,7 @@ updateCard:
 	return nil
 }
 
+// PutCreditCard asks user to enter all the info needed to create an instance of service.CreditCard in storage
 func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
 	creditCard.Holder = svc.getAnswer("Please, enter card holder name")
 	if creditCard.Number == "" {
@@ -492,6 +517,10 @@ func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
 	return nil
 }
 
+// showCreditCards prints all available binaries in a cute table and asks for further instructions
+// the options are:
+//   - update certain data
+//   - exit back to the choice of available actions
 func (svc *LocalService) showBinaryList() error {
 updateBinary:
 	binaryList, err := svc.storage.GetBinaryList()
@@ -556,6 +585,7 @@ updateBinary:
 	return nil
 }
 
+// putBinary asks user to enter all the info needed to send service.BinaryData to the remote
 func (svc *LocalService) putBinary(binary service.BinaryData) error {
 	if binary.Description == "" {
 		binary.Description = svc.getAnswer("Please, enter description for the binary")
@@ -590,6 +620,7 @@ func (svc *LocalService) putBinary(binary service.BinaryData) error {
 	return nil
 }
 
+// downloadBinary asks for path where to save a file which is to be downloaded from remote and calls for api service
 func (svc *LocalService) downloadBinary(binary service.BinaryData) error {
 	path := svc.getAnswer("Please enter a path to folder where you want to save a binary")
 
