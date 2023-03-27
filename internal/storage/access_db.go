@@ -5,15 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"gophkeeper/internal/service"
+	"gophkeeper/internal/tools"
 	"gorm.io/gorm"
 )
 
+// RegisterUser puts user login and password to DB while checking that user.Login stays unique
 func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) error {
 	var dbUser service.User
 	err := dbStorage.db.WithContext(ctx).Where("login = ?", user.Login).First(&dbUser).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			hashedPassword, err := service.GeneratePasswordHash(user.Password)
+			hashedPassword, err := tools.GeneratePasswordHash(user.Password)
 			if err != nil {
 				return fmt.Errorf("error in password hashing: %s", err)
 			}
@@ -29,6 +31,7 @@ func (dbStorage DBStorage) RegisterUser(user service.User, ctx context.Context) 
 	return ErrUserExists
 }
 
+// CheckUserAuth checks if the login and password provided are valid
 func (dbStorage DBStorage) CheckUserAuth(authDetails service.Authentication, ctx context.Context) error {
 	var authUser service.User
 
@@ -40,12 +43,13 @@ func (dbStorage DBStorage) CheckUserAuth(authDetails service.Authentication, ctx
 		return err
 	}
 
-	if !service.CheckPasswordHash(authDetails.Password, authUser.Password) {
+	if !tools.CheckPasswordHash(authDetails.Password, authUser.Password) {
 		return ErrInvalidCredentials
 	}
 	return nil
 }
 
+// PutLogoPass puts a secret logo-pass pair while checking that descriptions stays unique for a user
 func (dbStorage DBStorage) PutLogoPass(logoPass service.LogoPass, ctx context.Context) error {
 	var checkEntry service.LogoPass
 
@@ -75,6 +79,7 @@ func (dbStorage DBStorage) PutLogoPass(logoPass service.LogoPass, ctx context.Co
 	return nil
 }
 
+// PutText puts a secret text data while checking that descriptions stays unique for a user
 func (dbStorage DBStorage) PutText(secret service.TextData, ctx context.Context) error {
 	var checkEntry service.TextData
 
@@ -104,6 +109,7 @@ func (dbStorage DBStorage) PutText(secret service.TextData, ctx context.Context)
 	return nil
 }
 
+// PutCreditCard puts a credit card data while checking that creditCard.Number stays unique for a user
 func (dbStorage DBStorage) PutCreditCard(card service.CreditCard, ctx context.Context) error {
 	var checkEntry service.CreditCard
 
@@ -133,6 +139,7 @@ func (dbStorage DBStorage) PutCreditCard(card service.CreditCard, ctx context.Co
 	return nil
 }
 
+// PutBinary puts an arbitrary binary data while checking that descriptions stays unique for a user
 func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Context) error {
 	var checkEntry service.BinaryData
 
@@ -162,6 +169,7 @@ func (dbStorage DBStorage) PutBinary(binary service.BinaryData, ctx context.Cont
 	return nil
 }
 
+// BatchGetLogoPasses is used to get the list of all user's stored logo-pass pairs
 func (dbStorage DBStorage) BatchGetLogoPasses(login string, ctx context.Context) ([]service.LogoPass, error) {
 	var listLogoPasses []service.LogoPass
 
@@ -176,6 +184,7 @@ func (dbStorage DBStorage) BatchGetLogoPasses(login string, ctx context.Context)
 	return listLogoPasses, nil
 }
 
+// BatchGetTexts is used to get the list of all user's stored secret texts
 func (dbStorage DBStorage) BatchGetTexts(login string, ctx context.Context) ([]service.TextData, error) {
 	var listTexts []service.TextData
 
@@ -190,6 +199,7 @@ func (dbStorage DBStorage) BatchGetTexts(login string, ctx context.Context) ([]s
 	return listTexts, nil
 }
 
+// BatchGetCreditCards is used to get the list of all user's stored secret texts
 func (dbStorage DBStorage) BatchGetCreditCards(login string, ctx context.Context) ([]service.CreditCard, error) {
 	var listCards []service.CreditCard
 

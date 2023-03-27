@@ -1,7 +1,9 @@
+// Package tools holds some methods useful for Gophkeeper App
 package tools
 
 import (
 	"encoding/base64"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func EncryptString(plaintext, secret string) (string, error) {
@@ -29,4 +31,16 @@ func DecryptString(ciphertext, secret string) (string, error) {
 	}
 
 	return string(decodedCiphertext), nil
+}
+
+// GeneratePasswordHash hashes a user password in terms of security
+func GeneratePasswordHash(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// CheckPasswordHash returns true if password is hashed in a valid way
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }

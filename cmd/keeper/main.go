@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/sessions"
 	"gophkeeper/internal/app"
 	"gophkeeper/internal/config"
-	"gophkeeper/internal/service"
 	"gophkeeper/internal/storage"
 	"log"
 )
@@ -22,6 +21,8 @@ var (
 	buildDate    = "N/A"
 	buildCommit  = "N/A"
 )
+
+var secretKey = "watch?v=Qw4w9WgXcQ"
 
 func printBuildData() {
 	fmt.Println("Build version:", buildVersion)
@@ -43,7 +44,7 @@ func main() {
 	fmt.Println(cfg.DatabaseDSN)
 
 	userStorage := storage.NewUserStorage(cfg.DatabaseDSN)
-	cookieStorage := sessions.NewCookieStore([]byte(service.SecretKey))
+	cookieStorage := sessions.NewCookieStore([]byte(secretKey))
 	var application = app.NewApp(cfg, userStorage, *cookieStorage)
 	application.Run()
 }

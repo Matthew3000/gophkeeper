@@ -7,10 +7,12 @@ import (
 	"log"
 )
 
+// DBStorage hold pointer to gorm type DB
 type DBStorage struct {
 	db *gorm.DB
 }
 
+// NewUserStorage is used to open a connection to a postgres db and migrate all the tables needed
 func NewUserStorage(databaseURL string) *DBStorage {
 	connection, err := gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
 	if err != nil {

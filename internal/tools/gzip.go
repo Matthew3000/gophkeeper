@@ -14,14 +14,15 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
+// Write is definitely very useful for writing so that anything would be written in th right way
 func (gzipWriter gzipWriter) Write(b []byte) (int, error) {
 	return gzipWriter.Writer.Write(b)
 }
 
+// GzipMiddleware is used by App to gzip all incoming and outgoing data
 func GzipMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 
-		// gzip Decode
 		if !strings.Contains(request.Header.Get("Accept-Encoding"), "gzip") {
 			next.ServeHTTP(writer, request)
 			return

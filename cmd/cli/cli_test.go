@@ -30,10 +30,11 @@ func TestClient(t *testing.T) {
 	}
 	flag.StringVar(&serverCfg.DatabaseDSN, "d", serverCfg.DatabaseDSN, "File Storage Path")
 	flag.StringVar(&serverCfg.ServerAddress, "a", serverCfg.ServerAddress, "Server address")
+	log.Println(serverCfg.DatabaseDSN)
 
-	fmt.Println(serverCfg.DatabaseDSN)
+	var secretKey = "watch?v=Qw4w9WgXcQ"
 	userStorage := storage.NewUserStorage(serverCfg.DatabaseDSN)
-	cookieStorage := sessions.NewCookieStore([]byte(service.SecretKey))
+	cookieStorage := sessions.NewCookieStore([]byte(secretKey))
 	var application = app.NewApp(serverCfg, userStorage, *cookieStorage)
 	go application.Run()
 

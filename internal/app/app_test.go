@@ -30,8 +30,9 @@ func TestApp(t *testing.T) {
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "Server address")
 	flag.Parse()
 
+	var secretKey = "watch?v=Qw4w9WgXcQ"
 	userStorage := storage.NewUserStorage(cfg.DatabaseDSN)
-	cookieStorage := sessions.NewCookieStore([]byte(service.SecretKey))
+	cookieStorage := sessions.NewCookieStore([]byte(secretKey))
 	var app = NewApp(cfg, userStorage, *cookieStorage)
 	go app.Run()
 
@@ -48,7 +49,7 @@ func TestApp(t *testing.T) {
 	GetBinaryListTest(t, app, cookies)
 	GetBinaryTest(t, app, cookies)
 
-	//app.UserStorage.DeleteAll()
+	app.UserStorage.DeleteAll()
 }
 
 func AuthTest(t *testing.T, app *App) []http.Cookie {

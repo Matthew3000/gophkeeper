@@ -1,3 +1,4 @@
+// Package app holds handlers and routing for Gophkeeper secrets manager
 package app
 
 import (
@@ -10,12 +11,14 @@ import (
 	"net/http"
 )
 
+// App is a struct holding structures crucial for the working of the service
 type App struct {
 	config        config.Config
 	UserStorage   storage.UserStorage
 	cookieStorage sessions.CookieStore
 }
 
+// This holds all the routes available in App
 const (
 	RegisterEndpoint       = "/api/user/register"
 	LoginEndpoint          = "/api/user/login"
@@ -30,10 +33,12 @@ const (
 	GetBinaryEndpoint      = "/api/user/download/binary"
 )
 
+// NewApp constructor for app
 func NewApp(cfg config.Config, userStorage storage.UserStorage, cookieStorage sessions.CookieStore) *App {
 	return &App{config: cfg, UserStorage: userStorage, cookieStorage: cookieStorage}
 }
 
+// Run creates routing and holds all the handlers.
 func (app *App) Run() {
 	router := mux.NewRouter()
 	router.Use(tools.GzipMiddleware, app.addContext)

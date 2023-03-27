@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// LogoPass struct holds the secret login and password pair along with description. Overwrite flag used for api.
 type LogoPass struct {
 	gorm.Model
 	Login       string `json:"-"`
@@ -13,6 +14,7 @@ type LogoPass struct {
 	Overwrite   bool   `json:"overwrite" gorm:"-"`
 }
 
+// TextData struct holds the secret string data of any kind along with description. Overwrite flag used for api.
 type TextData struct {
 	gorm.Model
 	Login       string `json:"-"`
@@ -21,6 +23,7 @@ type TextData struct {
 	Overwrite   bool   `json:"overwrite" gorm:"-"`
 }
 
+// CreditCard struct holds the credit card data along with description. Overwrite flag used for api.
 type CreditCard struct {
 	gorm.Model
 	Login       string `json:"-"`
@@ -32,6 +35,7 @@ type CreditCard struct {
 	Overwrite   bool   `json:"overwrite" gorm:"-"`
 }
 
+// BinaryData struct holds arbitrary binary data along with description. Overwrite flag used for api.
 type BinaryData struct {
 	gorm.Model
 	Login       string `json:"-"`

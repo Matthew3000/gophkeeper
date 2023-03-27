@@ -1,5 +1,7 @@
 package app
 
+// Here are all the handler functions of the App
+
 import (
 	"context"
 	"encoding/json"
@@ -13,6 +15,10 @@ import (
 	"time"
 )
 
+// isAuthorized is a middleware used to find out if the user authorized.
+//
+// Returns:
+//   - `401` upon unsuccessful cookie check.
 func (app *App) isAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := app.cookieStorage.Get(r, "session.id")
@@ -26,6 +32,7 @@ func (app *App) isAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// addContext is a middleware that adds context.Context to all the incoming requests.
 func (app *App) addContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -35,6 +42,16 @@ func (app *App) addContext(handler http.Handler) http.Handler {
 	})
 }
 
+// register handles registration.
+//
+// Accepts json.Marshalled service.User struct with 'login' and 'password' fields obligatory.
+// Also authorizes the user right away if the registration is successful.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `409` if 'login' already exists in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - `200` and the access cookie in the header - if everything works out
 func (app *App) register(w http.ResponseWriter, r *http.Request) {
 	var user service.User
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -76,6 +93,15 @@ func (app *App) register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// login handles signing in.
+//
+// Accepts json.Marshalled service.Authentication struct with 'login' and 'password' fields obligatory.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `401` if user does not exist
+//   - `500` if storage methods fail to comprehend the request
+//   - `200` and the access cookie in the header - if everything works out
 func (app *App) login(w http.ResponseWriter, r *http.Request) {
 	var authDetails service.Authentication
 	err := json.NewDecoder(r.Body).Decode(&authDetails)
@@ -103,6 +129,17 @@ func (app *App) login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// uploadLogoPass handles uploading logo-pass pairs via http.Post request.
+//
+// Accepts json.Marshalled service.LogoPass struct with 'description' field obligatory.
+// 'secret_login', 'secret' are optional but are recommended in the sake of common sense.
+// 'overwrite' field is obligatory if the request is meant to update existing information.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `409` if this data already exist and 'overwrite' flag is false or omitted
+//   - `500` if storage methods fail to comprehend the request
+//   - `201` if everything is OK
 func (app *App) uploadLogoPass(w http.ResponseWriter, r *http.Request) {
 	var logoPass service.LogoPass
 
@@ -130,6 +167,15 @@ func (app *App) uploadLogoPass(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// batchDownloadLogoPasses handles sending the list of all user's logo-pass pairs via http.Get request.
+//
+// All it needs to run is a user login from http.Cookie.
+//
+// Returns:
+//   - `404` if user has no such data in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - json.Marshalled struct of []service.LogoPass type that contains all fields got from storage
+//     except 'overwrite' field by virtue of its needlessness
 func (app *App) batchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) {
 	var logoPass service.LogoPass
 
@@ -150,6 +196,17 @@ func (app *App) batchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) 
 	render.JSON(w, r, listLogoPasses)
 }
 
+// uploadText handles uploading text data via http.Post request.
+//
+// Accepts json.Marshalled service.TextData struct with 'description' field obligatory.
+// 'data' is optional but is recommended in the sake of common sense.
+// 'overwrite' field is obligatory if the request is meant to update existing information.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `409` if this data already exist and 'overwrite' flag is false or omitted
+//   - `500` if storage methods fail to comprehend the request
+//   - `201` if everything is OK
 func (app *App) uploadText(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
@@ -176,6 +233,15 @@ func (app *App) uploadText(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// batchDownloadTexts handles sending the list of all user's secret strings via http.Get request.
+//
+// All it needs to run is a user login from http.Cookie.
+//
+// Returns:
+//   - `404` if user has no such data in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - json.Marshalled struct of []service.TextData type that contains all fields got from storage
+//     except 'overwrite' field by virtue of its needlessness
 func (app *App) batchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
@@ -196,6 +262,17 @@ func (app *App) batchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, listTexts)
 }
 
+// uploadCreditCard handles uploading credit card data via http.Post request.
+//
+// Accepts json.Marshalled service.CreditCard struct with 'number' field obligatory.
+// 'holder', 'due_date', 'cvv', 'description' are optional but are recommended in the sake of common sense.
+// 'overwrite' field is obligatory if the request is meant to update existing information.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `409` if this data already exist and 'overwrite' flag is false or omitted
+//   - `500` if storage methods fail to comprehend the request
+//   - `201` if everything is OK
 func (app *App) uploadCreditCard(w http.ResponseWriter, r *http.Request) {
 	var card service.CreditCard
 
@@ -222,6 +299,15 @@ func (app *App) uploadCreditCard(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// batchDownloadCreditCards handles sending the list of all user's credit cards via http.Get request.
+//
+// All it needs to run is a user login from http.Cookie.
+//
+// Returns:
+//   - `404` if user has no such data in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - json.Marshalled struct of []service.CreditCard type that contains all fields got from storage
+//     except 'overwrite' field by virtue of its needlessness
 func (app *App) batchDownloadCreditCards(w http.ResponseWriter, r *http.Request) {
 	var card service.CreditCard
 
@@ -242,6 +328,17 @@ func (app *App) batchDownloadCreditCards(w http.ResponseWriter, r *http.Request)
 	render.JSON(w, r, listCards)
 }
 
+// uploadBinary handles uploading text data via http.Post request.
+//
+// Accepts json.Marshalled service.BinaryData struct with 'description' field obligatory.
+// 'binary' is optional but is recommended in the sake of common sense.
+// 'overwrite' field is obligatory if the request is meant to update existing information.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `409` if this data already exist and 'overwrite' flag is false or omitted
+//   - `500` if storage methods fail to comprehend the request
+//   - `201` if everything is OK
 func (app *App) uploadBinary(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
@@ -268,6 +365,15 @@ func (app *App) uploadBinary(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// downloadBinaryList handles sending the list of all user's binaries via http.Get request.
+//
+// All it needs to run is a user login from http.Cookie.
+//
+// Returns:
+//   - `404` if user has no such data in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - json.Marshalled struct of []service.BinaryData type that contains only the 'description' field
+//     while all stored binary data itself can be too large to batch download all of them
 func (app *App) downloadBinaryList(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
@@ -288,6 +394,16 @@ func (app *App) downloadBinaryList(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, binaryList)
 }
 
+// downloadBinary handles sending a particular user binary data via http.Post request.
+// Accepts json.Marshalled service.BinaryData struct with 'description' field obligatory.
+// All other fields are optional but are recommended to be omitted in the sake of common sense.
+//
+// Returns:
+//   - `400` if json is corrupted
+//   - `404` if user has no such data in storage
+//   - `500` if storage methods fail to comprehend the request
+//   - json.Marshalled struct of service.BinaryData type that contains all fields got from storage
+//     except 'overwrite' field by virtue of its needlessness
 func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
@@ -315,6 +431,8 @@ func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, binary)
 }
 
+// handleDefault is meant to remind anyone that tries some kind of funny stuff with this server
+// that they are not the only funny ones in the game
 func (app *App) handleDefault(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "https://www.youtube.com/watch?v=dQw4w9WgXcQ", http.StatusTemporaryRedirect)
 }
