@@ -45,9 +45,9 @@ func NewApp(cfg config.Config, userStorage storage.UserStorage, cookieStorage se
 func (app *App) Run() {
 	router := mux.NewRouter()
 	router.Use(tools.GzipMiddleware, app.addContext)
-	router.HandleFunc(GetWindows, app.handleDownloadExe).Methods(http.MethodGet)
-	router.HandleFunc(GetLinux, app.handleDownloadLinux).Methods(http.MethodGet)
-	router.HandleFunc(GetMac, app.handleDownloadMac).Methods(http.MethodGet)
+	router.HandleFunc(GetWindows, app.handleDownload).Methods(http.MethodGet)
+	router.HandleFunc(GetLinux, app.handleDownload).Methods(http.MethodGet)
+	router.HandleFunc(GetMac, app.handleDownload).Methods(http.MethodGet)
 	router.HandleFunc(RegisterEndpoint, app.register).Methods(http.MethodPost)
 	router.HandleFunc(LoginEndpoint, app.login).Methods(http.MethodPost)
 	router.HandleFunc(PutLogoPassEndpoint, app.isAuthorized(app.uploadLogoPass)).Methods(http.MethodPost)
