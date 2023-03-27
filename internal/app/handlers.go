@@ -8,10 +8,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-chi/render"
+	"gophkeeper/internal/config"
 	"gophkeeper/internal/service"
 	"gophkeeper/internal/storage"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -429,6 +432,99 @@ func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	render.JSON(w, r, binary)
+}
+
+// handleDownloadExe lets user download an .zip with executable client file
+func (app *App) handleDownloadExe(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment; filename=gophkeeper.zip")
+
+	zipFile, err := os.Open(app.config.DownloadFolder + config.WinFileName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer zipFile.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := zipFile.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = w.Write(buffer[:n])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// handleDownloadLinux lets user download an .zip with executable client file
+func (app *App) handleDownloadLinux(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment; filename=gophkeeper.zip")
+
+	zipFile, err := os.Open(app.config.DownloadFolder + config.LinFileName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer zipFile.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := zipFile.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = w.Write(buffer[:n])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+// handleDownloadMac lets user download an .zip with executable client file
+func (app *App) handleDownloadMac(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set("Content-Disposition", "attachment; filename=gophkeeper.zip")
+
+	zipFile, err := os.Open(app.config.DownloadFolder + config.MacFileName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer zipFile.Close()
+
+	buffer := make([]byte, 1024)
+	for {
+		n, err := zipFile.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		_, err = w.Write(buffer[:n])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
 }
 
 // handleDefault is meant to remind anyone that tries some kind of funny stuff with this server

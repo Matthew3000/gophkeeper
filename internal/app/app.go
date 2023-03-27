@@ -31,6 +31,9 @@ const (
 	GetCreditCardsEndpoint = "/api/user/download/credit-cards"
 	GetBinaryListEndpoint  = "/api/user/download/binary-list"
 	GetBinaryEndpoint      = "/api/user/download/binary"
+	GetWindows             = "/download/windows"
+	GetMac                 = "/download/mac"
+	GetLinux               = "/download/linux"
 )
 
 // NewApp constructor for app
@@ -42,6 +45,9 @@ func NewApp(cfg config.Config, userStorage storage.UserStorage, cookieStorage se
 func (app *App) Run() {
 	router := mux.NewRouter()
 	router.Use(tools.GzipMiddleware, app.addContext)
+	router.HandleFunc(GetWindows, app.handleDownloadExe).Methods(http.MethodGet)
+	router.HandleFunc(GetLinux, app.handleDownloadLinux).Methods(http.MethodGet)
+	router.HandleFunc(GetMac, app.handleDownloadMac).Methods(http.MethodGet)
 	router.HandleFunc(RegisterEndpoint, app.register).Methods(http.MethodPost)
 	router.HandleFunc(LoginEndpoint, app.login).Methods(http.MethodPost)
 	router.HandleFunc(PutLogoPassEndpoint, app.isAuthorized(app.uploadLogoPass)).Methods(http.MethodPost)

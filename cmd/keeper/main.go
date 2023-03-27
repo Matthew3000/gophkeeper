@@ -40,6 +40,7 @@ func main() {
 	}
 	flag.StringVar(&cfg.DatabaseDSN, "d", cfg.DatabaseDSN, "File Storage Path")
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "Server address")
+	flag.StringVar(&cfg.DownloadFolder, "f", cfg.DownloadFolder, "Folder for binaries to download")
 	flag.Parse()
 
 	fmt.Println(cfg.DatabaseDSN)
