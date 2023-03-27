@@ -27,14 +27,14 @@ func NewUserStorage(databaseURL string) *DBStorage {
 	}
 	log.Printf("Database connection successful")
 
-	InitializeTables(connection)
+	initializeTables(connection)
 
 	return &DBStorage{
 		db: connection,
 	}
 }
 
-func InitializeTables(connection *gorm.DB) {
+func initializeTables(connection *gorm.DB) {
 	err := connection.AutoMigrate(service.User{})
 	if err != nil {
 		log.Fatalf("database failed to create user table: %s", err)

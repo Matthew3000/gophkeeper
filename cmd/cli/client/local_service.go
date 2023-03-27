@@ -25,31 +25,26 @@ func NewService(config Config, api Api, storage Storage) *LocalService {
 	return &LocalService{config: config, Api: api, storage: storage}
 }
 
-func (svc *LocalService) StartCommunicate() error {
+func (svc *LocalService) getAnswer(ask string) string {
 	reader := bufio.NewReader(os.Stdin)
+ask:
+	fmt.Println(ask)
+	answer, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input: ", err)
+		goto ask
+	}
+	answer = strings.TrimRight(answer, "\r\n")
+	return answer
+}
 
+func (svc *LocalService) StartCommunicate() error {
 auth:
-	fmt.Println("login: type 1\nRegister: type 2")
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
+	choice := svc.getAnswer("login: type 1\nRegister: type 2")
+	login := svc.getAnswer("Enter your login")
+	password := svc.getAnswer("Enter your password")
 
-	fmt.Println("Enter your login")
-	login, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	login = strings.TrimRight(login, "\r\n")
-
-	fmt.Println("Enter your password")
-	password, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	password = strings.TrimRight(password, "\r\n")
-
+	var err error
 	switch choice {
 	case "1":
 		err = svc.Auth(login, password)
@@ -63,9 +58,14 @@ auth:
 		fmt.Println(err)
 		goto auth
 	}
+	svc.getActionFromUser()
+	return nil
+}
 
+func (svc *LocalService) getActionFromUser() {
 initialActionChoice:
-	fmt.Print("What are we going to do today?\n" +
+
+	choice := svc.getAnswer("What are we going to do today?\n" +
 		"View all stored login password pairs: type 1\n" +
 		"Create a new login password pair:     type 2\n" +
 		"View all texts:                       type 3\n" +
@@ -73,37 +73,34 @@ initialActionChoice:
 		"View all credit cards' info:          type 5\n" +
 		"Create a new credit card entry:       type 6\n" +
 		"Review all binary data:               type 7\n" +
-		"Upload a new binary:                  type 8\n")
-	choice, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
+		"Upload a new binary:                  type 8")
+
+	var err error
 	switch choice {
 	case "1":
-		err = svc.ShowLogoPasses()
+		err = svc.showLogoPasses()
 	case "2":
 		var newLogoPass service.LogoPass
 		newLogoPass.Overwrite = false
 		err = svc.PutLogoPass(newLogoPass)
 	case "3":
-		err = svc.ShowTexts()
+		err = svc.showTexts()
 	case "4":
 		var newText service.TextData
 		newText.Overwrite = false
 		err = svc.PutText(newText)
 	case "5":
-		err = svc.ShowCreditCards()
+		err = svc.showCreditCards()
 	case "6":
 		var newCreditCard service.CreditCard
 		newCreditCard.Overwrite = false
 		err = svc.PutCreditCard(newCreditCard)
 	case "7":
-		err = svc.ShowBinaryList()
+		err = svc.showBinaryList()
 	case "8":
 		var newBinary service.BinaryData
 		newBinary.Overwrite = false
-		err = svc.PutBinary(newBinary)
+		err = svc.putBinary(newBinary)
 	default:
 		fmt.Println("Houston we got a problem!")
 		goto initialActionChoice
@@ -224,7 +221,7 @@ func (svc *LocalService) UpdateAll() error {
 	return nil
 }
 
-func (svc *LocalService) ShowLogoPasses() error {
+func (svc *LocalService) showLogoPasses() error {
 updateLogoPass:
 	listLogoPasses, err := svc.storage.GetLogoPasses()
 	if err != nil {
@@ -249,18 +246,9 @@ updateLogoPass:
 			logoPass.Description, logoPass.UpdatedAt.Format(DateTimeLayout)}
 		table.Append(row)
 	}
-
 	table.Render()
 
-	fmt.Print("If you want to update any pair enter it's ID\n" +
-		"otherwise type exit\n")
-	reader := bufio.NewReader(os.Stdin)
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
-
+	choice := svc.getAnswer("If you want to update any pair enter it's ID\notherwise type exit")
 	switch choice {
 	case "exit":
 		return nil
@@ -293,32 +281,14 @@ updateLogoPass:
 }
 
 func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Please, enter login")
-	var err error
-	logoPass.SecretLogin, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	logoPass.SecretLogin = strings.TrimRight(logoPass.SecretLogin, "\r\n")
-
-	fmt.Println("Please, enter password")
-	logoPass.SecretPass, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	logoPass.SecretPass = strings.TrimRight(logoPass.SecretPass, "\r\n")
+	logoPass.SecretLogin = svc.getAnswer("Please, enter login")
+	logoPass.SecretPass = svc.getAnswer("Please, enter password")
 
 	if logoPass.Description == "" {
-		fmt.Println("Please, enter description for the pair")
-		logoPass.Description, err = reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input: ", err)
-		}
-		logoPass.Description = strings.TrimRight(logoPass.Description, "\r\n")
+		logoPass.Description = svc.getAnswer("Please, enter description for the pair")
 	}
 
+	var err error
 	logoPass.SecretPass, err = tools.EncryptString(logoPass.SecretPass, svc.key)
 	if err != nil {
 		return err
@@ -342,7 +312,7 @@ func (svc *LocalService) PutLogoPass(logoPass service.LogoPass) error {
 	return nil
 }
 
-func (svc *LocalService) ShowTexts() error {
+func (svc *LocalService) showTexts() error {
 updateText:
 	listTexts, err := svc.storage.GetTexts()
 	if err != nil {
@@ -361,19 +331,9 @@ updateText:
 		row := []string{strconv.FormatUint(uint64(text.ID), 10), text.Description, text.Text, text.UpdatedAt.Format(DateTimeLayout)}
 		table.Append(row)
 	}
-
 	table.Render()
 
-	fmt.Print("If you want to update any text enter it's ID\n" +
-		"otherwise type exit\n")
-	reader := bufio.NewReader(os.Stdin)
-
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
-
+	choice := svc.getAnswer("If you want to update any text enter it's ID\notherwise type exit")
 	switch choice {
 	case "exit":
 		return nil
@@ -407,25 +367,12 @@ updateText:
 }
 
 func (svc *LocalService) PutText(text service.TextData) error {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Please, enter text")
-	var err error
-	text.Text, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	text.Text = strings.TrimRight(text.Text, "\r\n")
-
+	text.Text = svc.getAnswer("Please, enter text")
 	if text.Description == "" {
-		fmt.Println("Please, enter description for the text")
-		text.Description, err = reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input: ", err)
-		}
-		text.Description = strings.TrimRight(text.Description, "\r\n")
+		text.Description = svc.getAnswer("Please, enter description for the text")
 	}
 
+	var err error
 	text.Text, err = tools.EncryptString(text.Text, svc.key)
 	if err != nil {
 		return err
@@ -445,7 +392,7 @@ func (svc *LocalService) PutText(text service.TextData) error {
 	return nil
 }
 
-func (svc *LocalService) ShowCreditCards() error {
+func (svc *LocalService) showCreditCards() error {
 updateCard:
 	listCreditCards, err := svc.storage.GetCreditCards()
 	if err != nil {
@@ -474,18 +421,9 @@ updateCard:
 			card.Description, card.UpdatedAt.Format(DateTimeLayout)}
 		table.Append(row)
 	}
-
 	table.Render()
 
-	fmt.Print("If you want to update any credit card info enter it's ID\n" +
-		"otherwise type exit\n")
-	reader := bufio.NewReader(os.Stdin)
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
-
+	choice := svc.getAnswer("If you want to update any credit card info enter it's ID\notherwise type exit")
 	switch choice {
 	case "exit":
 		return nil
@@ -518,45 +456,15 @@ updateCard:
 }
 
 func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Println("Please, enter card holder name")
-	var err error
-	creditCard.Holder, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	creditCard.Holder = strings.TrimRight(creditCard.Holder, "\r\n")
-
+	creditCard.Holder = svc.getAnswer("Please, enter card holder name")
 	if creditCard.Number == "" {
-		fmt.Println("Please, enter card number")
-		creditCard.Number, err = reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input: ", err)
-		}
-		creditCard.Number = strings.TrimRight(creditCard.Number, "\r\n")
+		creditCard.Number = svc.getAnswer("Please, enter card number")
 	}
-	fmt.Println("Please, enter due date")
-	creditCard.DueDate, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	creditCard.DueDate = strings.TrimRight(creditCard.DueDate, "\r\n")
+	creditCard.DueDate = svc.getAnswer("Please, enter due date")
+	creditCard.CVV = svc.getAnswer("Please, enter CVC/CVV code")
+	creditCard.Description = svc.getAnswer("Please, enter description for the card")
 
-	fmt.Println("Please, enter CVC/CVV code")
-	creditCard.CVV, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	creditCard.CVV = strings.TrimRight(creditCard.CVV, "\r\n")
-
-	fmt.Println("Please, enter description for the card")
-	creditCard.Description, err = reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	creditCard.Description = strings.TrimRight(creditCard.Description, "\r\n")
-
+	var err error
 	creditCard.Holder, err = tools.EncryptString(creditCard.Holder, svc.key)
 	if err != nil {
 		return err
@@ -584,7 +492,7 @@ func (svc *LocalService) PutCreditCard(creditCard service.CreditCard) error {
 	return nil
 }
 
-func (svc *LocalService) ShowBinaryList() error {
+func (svc *LocalService) showBinaryList() error {
 updateBinary:
 	binaryList, err := svc.storage.GetBinaryList()
 	if err != nil {
@@ -598,18 +506,9 @@ updateBinary:
 		row := []string{strconv.FormatUint(uint64(binary.ID), 10), binary.Description, binary.UpdatedAt.Format(DateTimeLayout)}
 		table.Append(row)
 	}
-
 	table.Render()
 
-	fmt.Print("If you want to update or download any binary enter it's ID\n" +
-		"otherwise type exit\n")
-	reader := bufio.NewReader(os.Stdin)
-	choice, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	choice = strings.TrimRight(choice, "\r\n")
-
+	choice := svc.getAnswer("If you want to update or download any binary enter it's ID\notherwise type exit")
 	switch choice {
 	case "exit":
 		return nil
@@ -632,27 +531,21 @@ updateBinary:
 			goto updateBinary
 		}
 
-		fmt.Print("If you want to update: type 1\n" +
+		choice = svc.getAnswer("If you want to update: type 1\n" +
 			"if you want to download: type 2\n" +
-			"otherwise: type exit\n")
-		choice, err = reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input: ", err)
-		}
-		choice = strings.TrimRight(choice, "\r\n")
-
+			"otherwise: type exit")
 		switch choice {
 		case "exit":
 			return nil
 		case "1":
 			updBinary.Overwrite = true
-			err = svc.PutBinary(updBinary)
+			err = svc.putBinary(updBinary)
 			if err != nil {
 				fmt.Println(err)
 				goto updateBinary
 			}
 		case "2":
-			err = svc.DownloadBinary(updBinary)
+			err = svc.downloadBinary(updBinary)
 			if err != nil {
 				fmt.Println(err)
 				goto updateBinary
@@ -663,23 +556,11 @@ updateBinary:
 	return nil
 }
 
-func (svc *LocalService) PutBinary(binary service.BinaryData) error {
-	reader := bufio.NewReader(os.Stdin)
-	var err error
+func (svc *LocalService) putBinary(binary service.BinaryData) error {
 	if binary.Description == "" {
-		fmt.Println("Please, enter description for the binary")
-		binary.Description, err = reader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading input: ", err)
-		}
-		binary.Description = strings.TrimRight(binary.Description, "\r\n")
+		binary.Description = svc.getAnswer("Please, enter description for the binary")
 	}
-	fmt.Println("Please, enter a path to upload your binary data")
-	path, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	path = strings.TrimRight(path, "\r\n")
+	path := svc.getAnswer("Please, enter a path to upload your binary data")
 
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -709,25 +590,15 @@ func (svc *LocalService) PutBinary(binary service.BinaryData) error {
 	return nil
 }
 
-func (svc *LocalService) DownloadBinary(binary service.BinaryData) error {
-	fmt.Println("Please enter a path to folder where you want to save a binary")
-	reader := bufio.NewReader(os.Stdin)
-	path, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	path = strings.TrimRight(path, "\r\n")
+func (svc *LocalService) downloadBinary(binary service.BinaryData) error {
+	path := svc.getAnswer("Please enter a path to folder where you want to save a binary")
 
-	err = os.MkdirAll(path, os.ModePerm)
+	err := os.MkdirAll(path, os.ModePerm)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Please enter a name for a file")
-	name, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input: ", err)
-	}
-	name = strings.TrimRight(name, "\r\n")
+
+	name := svc.getAnswer("Please enter a name for a file")
 
 	binary, err = svc.Api.GetBinary(binary)
 	if err != nil {

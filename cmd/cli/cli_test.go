@@ -14,6 +14,7 @@ import (
 	"gophkeeper/internal/storage"
 	"gorm.io/gorm"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -51,6 +52,24 @@ func TestClient(t *testing.T) {
 		log.Fatal(err)
 	}
 	var clientService = client.NewService(cfg, api, clientStorage)
+
+	application.UserStorage.DeleteAll()
+	err = clientStorage.ClearAll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Suppress stdin and std out
+	r, w, _ := os.Pipe()
+	oldStdin := os.Stdin
+	oldStdout := os.Stdout
+	os.Stdin = r
+	os.Stdout = w
+
+	defer func() {
+		os.Stdin = oldStdin
+		os.Stdout = oldStdout
+	}()
 
 	RegisterTest(t, clientService)
 	LoginTest(t, clientService)
