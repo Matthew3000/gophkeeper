@@ -3,8 +3,8 @@ package tools
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -49,15 +49,18 @@ func GzipMiddleware(next http.Handler) http.Handler {
 
 		gzipReader, err := gzip.NewWriterLevel(writer, gzip.BestSpeed)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			if _, err = io.WriteString(writer, err.Error()); err != nil {
-				fmt.Println(err)
 				return
 			}
 			return
 		}
 		defer func() {
-			_ = gzipReader.Close()
+			err = gzipReader.Close()
+			if err != nil {
+				log.Println(err)
+				return
+			}
 		}()
 
 		writer.Header().Set("Content-Encoding", "gzip")

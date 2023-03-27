@@ -8,6 +8,7 @@ import (
 	"gophkeeper/internal/app"
 	"gophkeeper/internal/service"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -146,7 +147,7 @@ func (api *ServerApi) GetLogoPasses() ([]service.LogoPass, error) {
 
 	resp, err := api.downloadData(app.GetLogoPassesEndpoint)
 	if err != nil {
-		return listLogoPasses, err
+		return nil, err
 	}
 
 	if len(resp) != 0 {
@@ -163,7 +164,7 @@ func (api *ServerApi) GetTexts() ([]service.TextData, error) {
 
 	resp, err := api.downloadData(app.GetTextsEndpoint)
 	if err != nil {
-		return listTexts, err
+		return nil, err
 	}
 
 	if len(resp) != 0 {
@@ -180,7 +181,7 @@ func (api *ServerApi) GetCreditCards() ([]service.CreditCard, error) {
 
 	resp, err := api.downloadData(app.GetCreditCardsEndpoint)
 	if err != nil {
-		return listCreditCards, err
+		return nil, err
 	}
 
 	if len(resp) != 0 {
@@ -197,7 +198,7 @@ func (api *ServerApi) GetBinaryList() ([]service.BinaryData, error) {
 
 	resp, err := api.downloadData(app.GetBinaryListEndpoint)
 	if err != nil {
-		return binaryList, err
+		return nil, err
 	}
 
 	if len(resp) != 0 {
@@ -245,8 +246,7 @@ func (api *ServerApi) UploadLogoPass(logoPass service.LogoPass) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("Login password pair has been successfully updated")
+	log.Println("login password pair has been successfully updated")
 	return nil
 }
 
@@ -255,8 +255,7 @@ func (api *ServerApi) UploadText(text service.TextData) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("The secret text has been successfully updated. What's it about, I wonder")
+	log.Println("The secret text has been successfully updated. What's it about, I wonder")
 	return nil
 }
 
@@ -265,8 +264,7 @@ func (api *ServerApi) UploadCreditCard(card service.CreditCard) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("The credit card info has been successfully updated")
+	log.Println("The credit card info has been successfully updated")
 	return nil
 }
 
@@ -275,7 +273,6 @@ func (api *ServerApi) UploadBinary(binary service.BinaryData) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("Your binary data has been successfully updated")
+	log.Println("Your binary data has been successfully updated")
 	return nil
 }

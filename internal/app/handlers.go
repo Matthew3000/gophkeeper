@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (app *App) IsAuthorized(handler http.HandlerFunc) http.HandlerFunc {
+func (app *App) isAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		session, _ := app.cookieStorage.Get(r, "session.id")
 		authenticated := session.Values["authenticated"]
@@ -26,7 +26,7 @@ func (app *App) IsAuthorized(handler http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func (app *App) AddContext(handler http.Handler) http.Handler {
+func (app *App) addContext(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
@@ -35,7 +35,7 @@ func (app *App) AddContext(handler http.Handler) http.Handler {
 	})
 }
 
-func (app *App) Register(w http.ResponseWriter, r *http.Request) {
+func (app *App) register(w http.ResponseWriter, r *http.Request) {
 	var user service.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
@@ -76,7 +76,7 @@ func (app *App) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *App) Login(w http.ResponseWriter, r *http.Request) {
+func (app *App) login(w http.ResponseWriter, r *http.Request) {
 	var authDetails service.Authentication
 	err := json.NewDecoder(r.Body).Decode(&authDetails)
 	if err != nil {
@@ -103,7 +103,7 @@ func (app *App) Login(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (app *App) UploadLogoPass(w http.ResponseWriter, r *http.Request) {
+func (app *App) uploadLogoPass(w http.ResponseWriter, r *http.Request) {
 	var logoPass service.LogoPass
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -130,7 +130,7 @@ func (app *App) UploadLogoPass(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (app *App) BatchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) {
+func (app *App) batchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) {
 	var logoPass service.LogoPass
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -149,7 +149,7 @@ func (app *App) BatchDownloadLogoPasses(w http.ResponseWriter, r *http.Request) 
 	render.JSON(w, r, listLogoPasses)
 }
 
-func (app *App) UploadText(w http.ResponseWriter, r *http.Request) {
+func (app *App) uploadText(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -175,7 +175,7 @@ func (app *App) UploadText(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (app *App) BatchDownloadTexts(w http.ResponseWriter, r *http.Request) {
+func (app *App) batchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	var text service.TextData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -194,7 +194,7 @@ func (app *App) BatchDownloadTexts(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, listTexts)
 }
 
-func (app *App) UploadCreditCard(w http.ResponseWriter, r *http.Request) {
+func (app *App) uploadCreditCard(w http.ResponseWriter, r *http.Request) {
 	var card service.CreditCard
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -220,7 +220,7 @@ func (app *App) UploadCreditCard(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (app *App) BatchDownloadCreditCards(w http.ResponseWriter, r *http.Request) {
+func (app *App) batchDownloadCreditCards(w http.ResponseWriter, r *http.Request) {
 	var card service.CreditCard
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -239,7 +239,7 @@ func (app *App) BatchDownloadCreditCards(w http.ResponseWriter, r *http.Request)
 	render.JSON(w, r, listCards)
 }
 
-func (app *App) UploadBinary(w http.ResponseWriter, r *http.Request) {
+func (app *App) uploadBinary(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -265,7 +265,7 @@ func (app *App) UploadBinary(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
+func (app *App) downloadBinaryList(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")
@@ -281,11 +281,10 @@ func (app *App) DownloadBinaryList(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	fmt.Println(binaryList)
 	render.JSON(w, r, binaryList)
 }
 
-func (app *App) DownloadBinary(w http.ResponseWriter, r *http.Request) {
+func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 	var binary service.BinaryData
 
 	session, _ := app.cookieStorage.Get(r, "session.id")

@@ -29,7 +29,7 @@ func (svc *LocalService) StartCommunicate() error {
 	reader := bufio.NewReader(os.Stdin)
 
 auth:
-	fmt.Println("Login: type 1\nRegister: type 2")
+	fmt.Println("login: type 1\nRegister: type 2")
 	choice, err := reader.ReadString('\n')
 	if err != nil {
 		fmt.Println("Error reading input: ", err)
@@ -105,7 +105,7 @@ initialActionChoice:
 		newBinary.Overwrite = false
 		err = svc.PutBinary(newBinary)
 	default:
-		fmt.Println("Houston we got a problem ")
+		fmt.Println("Houston we got a problem!")
 		goto initialActionChoice
 	}
 	if err != nil {
@@ -232,7 +232,7 @@ updateLogoPass:
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Login", "Password", "Description", "Last updated"})
+	table.SetHeader([]string{"ID", "login", "Password", "Description", "Last updated"})
 
 	for _, logoPass := range listLogoPasses {
 
