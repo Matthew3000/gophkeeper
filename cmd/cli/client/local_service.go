@@ -14,22 +14,6 @@ import (
 	"time"
 )
 
-type Service interface {
-	StartCommunicate() error
-	Auth(login, password string) error
-	Register(login, password string) error
-	UpdateAll() error
-	ShowLogoPasses() error
-	ShowTexts() error
-	ShowCreditCards() error
-	ShowBinaryList() error
-	PutLogoPass(logoPass service.LogoPass) error
-	PutText(text service.TextData) error
-	PutCreditCard(creditCard service.CreditCard) error
-	PutBinary(binary service.BinaryData) error
-	DownloadBinary(binary service.BinaryData) error
-}
-
 type LocalService struct {
 	config  Config
 	Api     Api
