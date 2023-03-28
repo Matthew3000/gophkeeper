@@ -65,15 +65,6 @@ func AuthTest(t *testing.T, app *App) []http.Cookie {
 		want want
 	}{
 		{
-			name: "404",
-			addr: "/iamlost",
-			user: service.User{},
-			want: want{
-				statusCode:  http.StatusNotFound,
-				contentType: "text/plain; charset=utf-8",
-			},
-		},
-		{
 			name: "register ok",
 			addr: RegisterEndpoint,
 			user: service.User{

@@ -59,8 +59,7 @@ func (app *App) Run() {
 	router.HandleFunc(GetCreditCardsEndpoint, app.isAuthorized(app.batchDownloadCreditCards)).Methods(http.MethodGet)
 	router.HandleFunc(GetBinaryListEndpoint, app.isAuthorized(app.downloadBinaryList)).Methods(http.MethodGet)
 	router.HandleFunc(GetBinaryEndpoint, app.isAuthorized(app.downloadBinary)).Methods(http.MethodPost)
-
-	router.HandleFunc("/", app.handleDefault)
+	router.NotFoundHandler = http.HandlerFunc(app.handleDefault)
 
 	log.Fatal(http.ListenAndServe(app.config.ServerAddress, router))
 }
