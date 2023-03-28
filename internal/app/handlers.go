@@ -435,7 +435,7 @@ func (app *App) downloadBinary(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, binary)
 }
 
-// handleDownloadExe lets user download an .zip with executable client file for specified platform
+// handleDownload lets user download an .zip with executable client file for specified platform
 func (app *App) handleDownload(w http.ResponseWriter, r *http.Request) {
 	platform := path.Base(r.URL.Path)
 	var name string
